@@ -1,0 +1,498 @@
+---
+title: "SQL"
+author: "PhatLV"
+date: '`r Sys.Date()`'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# 1 Process
+
+## 1.1 Activity data
+### 1.1.1 Daily
+
+```{sql, eval = F}
+SELECT
+  *
+FROM (
+  SELECT
+    DISTINCT *
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.dailyActivity`)
+WHERE
+  (very_active_minutes + fairly_active_minutes + lightly_active_minutes + sedentary_minutes) = 1440
+```
+
+### 1.1.2 Hourly
+
+```{sql, eval = F}
+CREATE TABLE IF NOT EXISTS fitabase_data.hourlyActivity AS
+/*1. Filter duplicate out of tables to combine all of that together in the next step*/
+WITH
+  hourlyCalories AS(
+  SELECT
+    DISTINCT *
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.hourlyCalories`),
+  hourlyIntensities AS(
+  SELECT
+    DISTINCT *
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.hourlyIntensities`),
+  hourlySteps AS(
+  SELECT
+    DISTINCT *
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.hourlySteps`)
+/*4. Filter data that have the total number of hours in date is not equal to 24*/
+SELECT
+  * EXCEPT(count_hour)
+FROM (
+/*3. Use the window function to count the total number in date if that is not equal to 24 then filter it out of the table*/
+  SELECT
+    *,
+    COUNT(activity_hour) OVER(PARTITION BY id, EXTRACT(date FROM activity_hour) ) AS count_hour
+  FROM (
+/*2. Join table*/
+    SELECT
+      *
+    FROM
+      hourlyCalories
+    INNER JOIN
+      hourlyIntensities
+    USING
+      (id,
+        activity_hour)
+    INNER JOIN
+      hourlySteps
+    USING
+      (id,
+        activity_hour)) )
+WHERE
+  count_hour = 24;
+```
+
+### 1.1.3 Minute
+
+```{sql, eval = F}
+CREATE TABLE IF NOT EXISTS fitabase_data.minuteActivity AS
+/*1. Filter duplicate out of tables to combine all of that together in the next step*/
+WITH
+  minuteCalories AS(
+  SELECT
+    DISTINCT *
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.minuteCaloriesNarrow`),
+  minuteIntensities AS(
+  SELECT
+    DISTINCT *
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.minuteIntensitiesNarrow`),
+  minuteSteps AS(
+  SELECT
+    DISTINCT *
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.minuteStepsNarrow`),
+  minuteMETs AS(
+  SELECT
+    DISTINCT *
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.minuteMETsNarrow`)
+/*4. 
+a. Filter out of values that are not equal to 1440 minutes
+b. Fill in the zero values in the mets and calories*/
+SELECT
+  * EXCEPT(count_minutes,
+    lag_mets,
+    lag_calories,
+    mets,
+    calories),
+  CASE mets
+    WHEN 0 THEN lag_mets
+  ELSE
+  mets
+  END
+  AS mets,
+  CASE calories
+    WHEN 0 THEN lag_calories
+  ELSE
+  calories
+  END
+  AS calories
+FROM (
+/*3.
+a. Create count_minutes to count the total minutes in a day, if not equal to 1440 minutes then filter all of the records on that day out of the table
+b. Create lag_mets and lag_calories to get the previous value of the mets and the calories to fill in the zero values to both of them in the next steps*/
+  SELECT
+    *,
+    COUNT(activity_minute)OVER(PARTITION BY id, EXTRACT(date FROM activity_minute) ) AS count_minutes,
+    LAG(mets, 1) OVER(PARTITION BY id ORDER BY activity_minute ) AS lag_mets,
+    LAG(calories, 1) OVER(PARTITION BY id ORDER BY activity_minute ) AS lag_calories
+  FROM (
+#2. Join table
+    SELECT
+      * EXCEPT(me_ts),
+      me_ts AS mets
+    FROM
+      minuteCalories
+    INNER JOIN
+      minuteIntensities
+    USING
+      (id,
+        activity_minute)
+    INNER JOIN
+      minuteSteps
+    USING
+      (id,
+        activity_minute)
+    INNER JOIN
+      minuteMETs
+    USING
+      (id,
+        activity_minute) ) )
+WHERE
+  count_minutes = 1440
+```
+
+#### a. Transform to Hourly
+
+```{sql, eval = F}
+CREATE TABLE IF NOT EXISTS
+  fitabase_data.hourlyActivityProcessed AS
+/*1. Extract date and hour from activity_minute to CONCAT into activity_hour in the next step*/
+WITH
+  minuteActivity AS(
+  SELECT
+    *,
+    EXTRACT(date
+    FROM
+      activity_minute) AS date,
+    EXTRACT(hour
+    FROM
+      activity_minute) AS hour
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.minuteActivity` AS minuteActivity)
+/*2. Aggregate data by activity_hour*/
+SELECT
+  id,
+  CAST(CONCAT(date, " ", hour, ":00:00") AS timestamp) AS activity_hour,
+  ROUND(SUM(calories)) AS calories,
+  SUM(intensity) AS total_intensity,
+  ROUND(AVG(intensity), 5) AS average_intensity,
+  SUM(steps) AS step_total
+FROM
+  minuteActivity
+GROUP BY
+  id,
+  activity_hour;
+```
+
+#### b. Transform to Daily
+
+```{sql, eval = F}
+CREATE TABLE IF NOT EXISTS
+  fitabase_data.dailyActivityProcessed AS
+/*1. Create dailyAcivity aggregated by activity_date and intensity*/
+WITH
+  dailyActivity AS(
+  SELECT
+    id,
+    EXTRACT(date
+    FROM
+      activity_minute) AS activity_date,
+    intensity,
+    SUM(steps) AS total_steps,
+    SUM(steps) / 1312.33595801 AS total_distance,
+    COUNT(DISTINCT activity_minute) AS active_minute,
+    SUM(calories) AS total_calories
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.minuteActivity`
+  GROUP BY
+    id,
+    activity_date,
+    intensity)
+/*5. Calculate total number of steps, distances and calories*/
+SELECT
+  id,
+  activity_date,
+  ROUND(sedentary_steps + lightly_steps + moderately_steps + very_steps, 2) AS total_steps,
+  ROUND(sedentary_active_distance + lightly_active_distance + moderately_active_distance + very_active_distance, 2) AS total_distance,
+  ROUND(sedentary_active_distance, 2) AS sedentary_active_distance,
+  ROUND(lightly_active_distance, 2) AS lightly_active_distance,
+  ROUND(moderately_active_distance, 2) AS moderately_active_distance,
+  ROUND(very_active_distance, 2) AS very_active_distance,
+  sedentary_active_minutes,
+  lightly_active_minutes,
+  moderately_active_minutes,
+  very_active_minutes,
+  ROUND(sedentary_calories + lightly_calories + moderately_calories + very_calories) AS calories
+FROM (
+/*4. Replace NULL values into zero values*/
+  SELECT
+    id,
+    activity_date,
+    ifnull(steps_0,
+      0) AS sedentary_steps,
+    ifnull(steps_1,
+      0) AS lightly_steps,
+    ifnull(steps_2,
+      0) AS moderately_steps,
+    ifnull(steps_3,
+      0) AS very_steps,
+    ifnull(distance_0,
+      0) AS sedentary_active_distance,
+    ifnull(distance_1,
+      0) AS lightly_active_distance,
+    ifnull(distance_2,
+      0) AS moderately_active_distance,
+    ifnull(distance_3,
+      0) AS very_active_distance,
+    ifnull(active_minute_0,
+      0) AS sedentary_active_minutes,
+    ifnull(active_minute_1,
+      0) AS lightly_active_minutes,
+    ifnull(active_minute_2,
+      0) AS moderately_active_minutes,
+    ifnull(active_minute_3,
+      0) AS very_active_minutes,
+    ifnull(calories_0,
+      0) AS sedentary_calories,
+    ifnull(calories_1,
+      0) AS lightly_calories,
+    ifnull(calories_2,
+      0) AS moderately_calories,
+    ifnull(calories_3,
+      0) AS very_calories
+  FROM
+/*2. PIVOT dailyActivity data by value from intensity*/
+    dailyActivity PIVOT( SUM(total_steps) AS steps,
+      SUM(total_distance) AS distance,
+      SUM(active_minute) AS active_minute,
+      SUM(total_calories) AS calories FOR intensity IN (0,
+        1,
+        2,
+        3)))
+```
+
+
+## 1.2 Sleep data
+
+```{sql, eval = F}
+CREATE TABLE IF NOT EXISTS
+  fitabase_data.sleepDayProcessed AS
+/*1. Assume that the total of value 1 is total_minutes_asleep and the grand total of values 1, 2, 3 is total_time_in_bed
+So we split value 1 into minute_asleep to sum it up in the next step
+We also extract sleep_day from date to group data by sleep_day in the next step*/
+WITH
+  minuteSleep AS(
+  SELECT
+    *,
+    CASE value
+      WHEN 1 THEN 1
+    ELSE
+    0
+  END
+    AS minutes_asleep,
+    EXTRACT(date
+    FROM
+      date) AS sleep_day
+  FROM (
+    SELECT
+      DISTINCT *
+    FROM
+      `data-analysis-case-study-2022.fitabase_data.minuteSleep`))
+/*2. Aggregate data by sleep_day per ID*/
+SELECT
+  id,
+  sleep_day,
+  COUNT(DISTINCT log_id) AS total_sleep_records,
+  SUM(minutes_asleep) AS total_minutes_asleep,
+  COUNT(*) AS total_time_in_bed
+FROM
+  minuteSleep
+GROUP BY
+  id,
+  sleep_day;
+```
+
+#2. Analyze
+## 2.1 Activity data
+
+Create the hourly activity data with more detail than the original hourly activity data by aggregate data from the minute activity data
+
+```{sql, eval = F}
+CREATE TABLE IF NOT EXISTS hourlyActivitySummary AS
+WITH
+  minuteActivity AS(
+  SELECT
+    *,
+    EXTRACT(date
+    FROM
+      activity_minute) AS date,
+    EXTRACT(hour
+    FROM
+      activity_minute) AS hour,
+    CASE
+      WHEN steps > 0 THEN 1
+    ELSE
+    0
+  END
+    AS step_minutes
+  FROM
+    `data-analysis-case-study-2022.fitabase_data.minuteActivity`)
+SELECT
+  *,
+  sedentary_steps + lightly_steps + moderately_steps + very_steps AS total_steps,
+  sedentary_steps_minutes + lightly_steps_minutes + moderately_steps_minutes + very_steps_minutes AS total_step_minutes,
+  sedentary_calories + lightly_calories + moderately_calories + very_calories AS total_calories,
+  sedentary_mets + lightly_mets + moderately_mets + very_mets AS total_mets
+FROM (
+  SELECT
+    id,
+    activity_hour,
+    ifnull(steps_0,
+      0) AS sedentary_steps,
+    ifnull(steps_1,
+      0) AS lightly_steps,
+    ifnull(steps_2,
+      0) AS moderately_steps,
+    ifnull(steps_3,
+      0) AS very_steps,
+    ifnull(step_minutes_0,
+      0) AS sedentary_steps_minutes,
+    ifnull(step_minutes_1,
+      0) AS lightly_steps_minutes,
+    ifnull(step_minutes_2,
+      0) AS moderately_steps_minutes,
+    ifnull(step_minutes_3,
+      0) AS very_steps_minutes,
+    ifnull(active_minutes_0,
+      0) AS sedentary_active_minutes,
+    ifnull(active_minutes_1,
+      0) AS lightly_active_minutes,
+    ifnull(active_minutes_2,
+      0) AS moderately_active_minutes,
+    ifnull(active_minutes_3,
+      0) AS very_active_minutes,
+    ifnull(calories_0,
+      0) AS sedentary_calories,
+    ifnull(calories_1,
+      0) AS lightly_calories,
+    ifnull(calories_2,
+      0) AS moderately_calories,
+    ifnull(calories_3,
+      0) AS very_calories,
+    ifnull(mets_0,
+      0) AS sedentary_mets,
+    ifnull(mets_1,
+      0) AS lightly_mets,
+    ifnull(mets_2,
+      0) AS moderately_mets,
+    ifnull(mets_3,
+      0) AS very_mets
+  FROM (
+    SELECT
+      id,
+      CAST(CONCAT(date, " ", hour, ":00:00") AS timestamp) AS activity_hour,
+      intensity,
+      SUM(steps) AS steps,
+      SUM(step_minutes) AS step_minutes,
+      COUNT(*) AS active_minutes,
+      SUM(calories) AS calories,
+      SUM(mets) AS mets
+    FROM
+      minuteActivity
+    GROUP BY
+      id,
+      activity_hour,
+      intensity ) PIVOT( SUM(steps) AS steps,
+      SUM(step_minutes) AS step_minutes,
+      SUM(active_minutes) AS active_minutes,
+      SUM(calories) AS calories,
+      SUM(mets) AS mets FOR intensity IN (0,
+        1,
+        2,
+        3)))
+```
+
+## 2.2 Sleep data
+
+Create the sleep log info data by aggregate data from the minute sleep data
+
+```{sql, eval = F}
+CREATE TABLE IF NOT EXISTS sleepLogInfo AS
+WITH
+  minuteSleep AS(
+  SELECT
+    *,
+    CASE value
+      WHEN 1 THEN 1
+    ELSE
+    0
+  END
+    AS minutes_asleep
+  FROM (
+    SELECT
+      DISTINCT *
+    FROM
+      `data-analysis-case-study-2022.fitabase_data.minuteSleep`))
+SELECT
+  id,
+  log_id,
+  SUM(minutes_asleep) AS total_minutes_asleep,
+  COUNT(*) AS total_time_in_bed,
+  EXTRACT(date
+  FROM
+    MIN(date)) AS sleep_date,
+  EXTRACT(date
+  FROM
+    MAX(date)) AS wake_date,
+  EXTRACT(hour
+  FROM
+    MIN(date)) AS sleep_time,
+  EXTRACT(hour
+  FROM
+    MAX(date)) AS wake_time,
+  CASE EXTRACT(dayofweek
+  FROM
+    MIN(date))
+    WHEN 1 THEN "Sun"
+    WHEN 2 THEN "Mon"
+    WHEN 3 THEN "Tue"
+    WHEN 4 THEN "Wed"
+    WHEN 5 THEN "Thu"
+    WHEN 6 THEN "Fri"
+    WHEN 7 THEN "Sat"
+  ELSE
+  "error"
+END
+  AS sleep_day,
+  CASE EXTRACT(dayofweek
+  FROM
+    MAX(date))
+    WHEN 1 THEN "Sun"
+    WHEN 2 THEN "Mon"
+    WHEN 3 THEN "Tue"
+    WHEN 4 THEN "Wed"
+    WHEN 5 THEN "Thu"
+    WHEN 6 THEN "Fri"
+    WHEN 7 THEN "Sat"
+  ELSE
+  "error"
+END
+  AS wake_day
+FROM
+  minuteSleep
+GROUP BY
+  id,
+  log_id;
+```
+

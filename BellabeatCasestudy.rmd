@@ -1,0 +1,1774 @@
+---
+title: "**How consumers are using their fitness tracker**<br /> Data analysis case study"
+author: "PhatLV"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+---
+
+```{css zoom-lib-src, echo = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+```
+
+```{js zoom-jquery, echo = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
+```
+
+___
+
+# 0. Introduction
+
+***Welcome to the Bellabeat data analysis case study!***
+
+In this case study, I will perform many real-world tasks of a junior data analyst. I will imagine that I am working for Bellabeat, a high-tech manufacturer of health-focused products for women, and meet different characters and team members.
+
+In order to answer the key business questions, I will follow the steps of the data analysis process: ask, prepare, process, analyze, share, and act.
+
+## 0.1 Scenario
+
+I am a junior data analyst working on the marketing analyst team at Bellabeat, a high-tech manufacturer of health-focused products for women. Bellabeat is a successful small company, but they have the potential to become a larger player in the global smart device market.
+
+Urška Sršen, co-founder and Chief Creative Officer of Bellabeat, believes that analyzing smart device fitness data could help unlock new growth opportunities for the company.
+
+I have been asked to focus on one of Bellabeat's products and analyze smart device data to gain insight into how consumers are using their smart devices. The insights I discover will then help guide marketing strategy for the company. I will present my analysis to the Bellabeat executive team along with high-level recommendations for Bellabeat's marketing strategy
+
+## 0.2 Characters & Products
+
+### 0.2.1. Characters
+
+**Urška Sršen**: Bellabeat's co-founder and Chief Creative Officer
+
+**Sando Mur**: Mathematician and Bellabeat's cofounder; key member of the Bellabeat executive team
+
+**Bellabeat marketing analytics team**: A team of data analysts responsible for collecting, analyzing, and reporting data that helps guide Bellabeat's marketing strategy. I joined this team six months ago and have been busy learning about Bellabeat's mission and business goals - as well as how I, as a junior data analyst, can help Bellabeat achieve them
+
+### 0.2.2 Products
+
+**Bellabeat app**: The Bellabeat app provides users with health data related to their activity, sleep, stress, menstrual cycle, and mindfulness habits. This data can help users better understand their current habits and make healthy decisions. The Bellabeat app connects to their line of smart wellness products
+
+**Leaf**: Bellabeat's classic wellness tracker can be worn as a bracelet, necklace, or clip. The Leaf tracker connects to the Bellabeat app to track activity, sleep, and stress.
+
+**Time**: This wellness watch combines the timeless look of a classic timepiece with smart technology to track user activity, sleep, and stress. The Time watch connects to the Bellabeat app to provide you with insights into your daily wellness.
+
+**Spring**: This is a water bottle that tracks daily water intake using smart technology to ensure that you are appropriately hydrated throughout the day. The Spring bottle connects to the Bellabeat app to track your hydration levels.
+
+**Bellabeat membership**: Bellabeat also offers a subscription-based membership program for users. Membership gives users 24/7 access to fully personalized guidance on nutrition, activity, sleep, health and beauty, and mindfulness based on their lifestyle and goals.
+
+## 0.3 About the company
+
+Urška Sršen and Sando Mur founded Bellabeat, a high-tech company that manufactures health-focused smart products. Sršen used her background as an artist to develop beautifully designed technology that informs and inspires women around the world. Collecting data on activity, sleep, stress, and reproductive health has allowed Bellabeat to empower women with knowledge about their own health and habits.
+
+Since it was founded in 2013, Bellabeat has grown rapidly and quickly positioned itself as a tech-driven wellness company for women. By 2016, Bellabeat had opened offices around the world and launched multiple products. Bellabeat products became available through a growing number of online retailers in addition to their own e-commerce channel on their website.
+
+The company has invested in traditional advertising media, such as radio, out-of-home billboards, print, and television, but focuses on digital marketing extensively. Bellabeat invests year-round in Google Search, maintaining active Facebook and Instagram pages, and consistently engages consumers on Twitter. Additionally, Bellabeat runs video ads on Youtube and display ads on the Google Display Network to support campaigns around key marketing dates.
+
+Sršen knows that an analysis of Bellabeat's available consumer data would reveal more opportunities for growth. She has asked the marketing analytics team to focus on a Bellabeat product and analyze smart device usage data in order to gain insight into how people are already using their smart devices. Then, using this information, she would like high-level recommendations for how these trends can inform Bellabeat marketing strategy.
+
+___
+
+# 1. Business task summary
+
+***A clear statement of the business task***
+
+## 1.1 Purpose
+
+The goal of this project is to study how consumers are using their smart fitness device. The project will identify trends in the smart fitness device data. After identifying trends, select one Bellabeat product to apply these insights to identify recommendations that can inform Bellabeat marketing strategy.
+
+The final deliverable will provide recommendations about how consumers are using their smart device.
+
+## 1.2 Deliverables
+
+Produce a report with the following deliverables:
+
+1.  A clear summary of the business task
+2.  A description of all data sources used
+3.  Documentation of any cleaning or manipulation of data
+4.  A summary of analysis
+5.  Supporting visualizations and key findings
+6.  Top high-level content recommendations based on analysis
+
+___
+
+
+# 2. Prepare 
+
+***A description of all data sources used***
+
+## 2.1 Data sources
+
+In this task, I was given a public data set that explores smart device users' daily habits that is [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit) and was stored on Kaggle by Mobius with [CC0 liscense](https://creativecommons.org/publicdomain/zero/1.0/)
+
+But after the explorer, we figured out that the data is copyright with [CCBY - Attribution](https://creativecommons.org/licenses/by/4.0/legalcode) license, and originally stored on [Zenodo](https://zenodo.org/record/53894#.YoD7HNpBy02), so if we use this data, we are required attribution to the creator and include the BY element.
+
+So we will use the original data stored on Zenodo and cite Furberg, R., Brinton, J., Keating, M., & Ortiz, A. (2016). Crowd-sourced Fitbit datasets 03.12.2016-05.12.2016 [Data set]. Zenodo. [\@furberg2016](https://doi.org/10.5281/zenodo.53894)\
+*(Zenodo is a general-purpose open repository developed under the European OpenAIRE program and operated by CERN. It allows researchers to deposit research papers, data sets, research software, reports, and other digital artifacts.)*
+
+**Content:**
+
+-   These datasets were generated by respondents to a distributed survey via Amazon Mechanical Turk between 03.12.2016-05.12.2016.
+
+-   Thirty eligible Fitbit users consented to the submission of personal tracker data, including minute-level output for physical activity, heart rate, and sleep monitoring.
+
+-   Individual reports can be parsed by export session ID (column A) or timestamp (column B). Variation between output represents the use of different types of Fitbit trackers and individual tracking behaviors/preferences.
+
+After downloading data, we got two compressed files named by two periods of time, the first is from 03/12/2016 to 04/11/2016 and another is from 04/12/2016 to 05/12/2016
+
+![The raw data](../documents/image/1.png)
+
+Extract them, we got
+
+![Data from 03/12/2016 to 04/11/2016](../documents/image/3.png)
+
+![Data from 04/12/2016 to 05/12/2016](../documents/image/2.png)
+It looks like some of the data from the first period time are missing. We will explore that later on. First, we are going to import and merge data that are available during the whole period
+
+We need to install and load packages that are the collection of R functions, compiled code, and sample data to make easier and faster data process
+
+## 2.2 Packages & library
+
+-   The Core `tidyverse` package include essential packages inside that are:
+    -   `readr` to quickly import CSV file
+    -   `tidyr`  is a way to organize tabular data in a consistent data structure across packages. consistent data structure across packages. 
+    -   `dplyr` to transform data
+    -   `stringr` to work with character type as string
+    -   `ggplot2` to visualize data
+-   The `janitor` package for cleaning data
+-   The `lubridate` package to handle DATETIME format and type
+-   The `kabbleExtra` package to print() Html table from Rmarkdown document
+
+Let's install packages and load libraries.
+
+```{r, eval = FALSE}
+library("tidyverse")
+library("tidytext")
+library("here")
+library("janitor")
+library("lubridate")
+```
+
+## 2.3 Data importing
+
+Using `readr::read_csv()` to load all CSV file
+
+```{r, eval = FALSE}
+dailyActivity1<- read_csv(here("data", "process", "dailyActivity1.csv"))
+dailyActivity2<- read_csv(here("data", "process", "dailyActivity2.csv"))
+dailyCalories2<- read_csv(here("data", "process", "dailyCalories2.csv"))
+dailyIntensities2<- read_csv(here("data", "process", "dailyIntensities2.csv"))
+dailySteps2<- read_csv(here("data", "process", "dailySteps2.csv"))
+heartrateSeconds1<- read_csv(here("data", "process", "heartrate_seconds1.csv"))
+heartrateSeconds2<- read_csv(here("data", "process", "heartrate_seconds2.csv"))
+hourlyCalories1<- read_csv(here("data", "process", "hourlyCalories1.csv"))
+hourlyCalories2<- read_csv(here("data", "process", "hourlyCalories2.csv"))
+hourlyIntensities1<- read_csv(here("data", "process", "hourlyIntensities1.csv"))
+hourlyIntensities2<- read_csv(here("data", "process", "hourlyIntensities2.csv"))
+hourlySteps1<- read_csv(here("data", "process", "hourlySteps1.csv"))
+hourlySteps2<- read_csv(here("data", "process", "hourlySteps2.csv"))
+minuteCaloriesNarrow1<- read_csv(here("data", "process", "minuteCaloriesNarrow1.csv"))
+minuteCaloriesNarrow2<- read_csv(here("data", "process", "minuteCaloriesNarrow2.csv"))
+minuteCaloriesWide2<- read_csv(here("data", "process", "minuteCaloriesWide2.csv"))
+minuteIntensitiesNarrow1<- read_csv(here("data", "process", "minuteIntensitiesNarrow1.csv"))
+minuteIntensitiesNarrow2<- read_csv(here("data", "process", "minuteIntensitiesNarrow2.csv"))
+minuteIntensitiesWide2<- read_csv(here("data", "process", "minuteIntensitiesWide2.csv"))
+minuteMETsNarrow1<- read_csv(here("data", "process", "minuteMETsNarrow1.csv"))
+minuteMETsNarrow2<- read_csv(here("data", "process", "minuteMETsNarrow2.csv"))
+minuteSleep1<- read_csv(here("data", "process", "minuteSleep1.csv"))
+minuteSleep2<- read_csv(here("data", "process", "minuteSleep2.csv"))
+minuteStepsNarrow1<- read_csv(here("data", "process", "minuteStepsNarrow1.csv"))
+minuteStepsNarrow2<- read_csv(here("data", "process", "minuteStepsNarrow2.csv"))
+minuteStepsWide2<- read_csv(here("data", "process", "minuteStepsWide2.csv"))
+sleepDay2<- read_csv(here("data", "process", "sleepDay2.csv"))
+weightLogInfo1<- read_csv(here("data", "process", "weightLogInfo1.csv"))
+weightLogInfo2<- read_csv(here("data", "process", "weightLogInfo2.csv"))
+```
+
+After explore the dataset, we can see it include various activity tracking data that are step, sleep, heart rate, calorie, intensity, and METs that are aggregated of daily, hourly, minute, and second in both wide and narrow table format *METs (metabolic equivalents. One MET is defined as the energy you use when you're resting or sitting still. An activity that has a value of 4 METs means you're exerting four times the energy than you would if you were sitting still)*
+
+*Datasets information:*
+
++--------------------------------------------+-------------------------------+
+| Data                                       | Variables                     |
++============================================+===============================+
+| 1.  dailyActivity1 (457 obs)               | -   Id\                       |
+|                                            | -   ActivityDate\             |
+| 2.  dailyActivity2 (940 obs)               | -   TotalSteps\               |
+|                                            | -   TotalDistance\            |
+|                                            | -   TrackerDistance\          |
+|                                            | -   LoggedActivitiesDistance\ |
+|                                            | -   VeryActiveDistance\       |
+|                                            | -   ModeratelyActiveDistance\ |
+|                                            | -   LightActiveDistance\      |
+|                                            | -   SedentaryActiveDistance\  |
+|                                            | -   VeryActiveMinutes\        |
+|                                            | -   FairlyActiveMinutes\      |
+|                                            | -   LightlyActiveMinutes\     |
+|                                            | -   SedentaryMinutes\         |
+|                                            | -   Calories                  |
++--------------------------------------------+-------------------------------+
+| 3.  dailyCalories2 (940 obs)               | \- Id\                        |
+|                                            | - ActivityDay\                |
+|                                            | - Calories                    |
++--------------------------------------------+-------------------------------+
+| 4.  dailyIntensities2 (940 obs)            | \- Id\                        |
+|                                            | - ActivityDay\                |
+|                                            | - SedentaryMinutes\           |
+|                                            | - LightlyActiveMinutes\       |
+|                                            | - FairlyActiveMinutes\        |
+|                                            | - VeryActiveMinutes\          |
+|                                            | - SedentaryActiveDistance\    |
+|                                            | - LightActiveDistance\        |
+|                                            | - ModeratelyActiveDistance\   |
+|                                            | - VeryActiveDistance          |
++--------------------------------------------+-------------------------------+
+| 5.  dailySteps2 (940 obs)                  | \- Id\                        |
+|                                            | - ActivityDay\                |
+|                                            | - StepTotal                   |
++--------------------------------------------+-------------------------------+
+| 6.  hourlyCalories1 (24084 obs)            | \- Id\                        |
+| 7.  hourlyCalories2 (22099 obs)            | - ActivityHour\               |
+|                                            | - Calories                    |
++--------------------------------------------+-------------------------------+
+| 8.  hourlyIntensities1 (24084 obs)         | \- Id\                        |
+| 9.  hourlyIntensities2 (22099 obs)         | - ActivityHour\               |
+|                                            | - TotalIntensity\             |
+|                                            | - AverageIntensity            |
++--------------------------------------------+-------------------------------+
+| 10. hourlyStep1 (24084 obs)                | \- Id\                        |
+| 11. hourlyStep2 (22099 obs)                | - ActivityHour\               |
+|                                            | - StepTotal                   |
++--------------------------------------------+-------------------------------+
+| 12. minuteCaloriesNarrow1 (1445040 obs)    | \- Id\                        |
+| 13. minuteCaloriesNarrow2 (1325580 obs)    | - ActivityMinute\             |
+|                                            | - Calories                    |
++--------------------------------------------+-------------------------------+
+| 14. minuteMETsNarrow1 (1445040 obs)        | \- Id\                        |
+| 15. minuteMETsNarrow2 (1325580 obs)        | - ActivityMinute\             |
+|                                            | - METs                        |
++--------------------------------------------+-------------------------------+
+| 16. minuteIntensitiesNarrow1 (1445040 obs) | \- Id\                        |
+| 17. minuteIntensitiesNarrow2 (1325580 obs) | - ActivityMinute\             |
+|                                            | - Intensity                   |
++--------------------------------------------+-------------------------------+
+| 18. minuteStepsNarrow1 (1445040 obs)       | \- Id\                        |
+| 19. minuteStepsNarrow2 (1325580 obs)       | - ActivityMinute\             |
+|                                            | - Steps                       |
++--------------------------------------------+-------------------------------+
+| 20. minuteSleep1 (198559 obs)              | \- Id\                        |
+| 21. minuteSleep2 (188521 obs)              | - date\                       |
+|                                            | - value\                      |
+|                                            | - logId                       |
++--------------------------------------------+-------------------------------+
+| 22. minuteCaloriesWide2 (21645 obs)        | \- Id\                        |
+|                                            | - ActivityHour\               |
+|                                            | - Calories00\                 |
+|                                            | - Calories01                  |
+|                                            |                               |
+|                                            | ...                           |
+|                                            |                               |
+|                                            | \- Calories59                 |
++--------------------------------------------+-------------------------------+
+| 23. minuteStepsWide2 (21645 obs)           | \- Id\                        |
+|                                            | - ActivityHour\               |
+|                                            | - Steps00\                    |
+|                                            | - Steps01                     |
+|                                            |                               |
+|                                            | ...                           |
+|                                            |                               |
+|                                            | \- Steps59                    |
++--------------------------------------------+-------------------------------+
+| 24. minuteIntensitiesWide2 (21645 obs)     | \- Id\                        |
+|                                            | - ActivityHour\               |
+|                                            | - Intensity00\                |
+|                                            | - Intensity01                 |
+|                                            |                               |
+|                                            | ...                           |
+|                                            |                               |
+|                                            | \- Intensity59                |
++--------------------------------------------+-------------------------------+
+| 25. sleepDay2 (413 obs)                    | \- Id\                        |
+|                                            | - SleepDay\                   |
+|                                            | - TotalSleepRecords\          |
+|                                            | - TotalMinutesAsleep\         |
+|                                            | - TotalTimeInBed              |
++--------------------------------------------+-------------------------------+
+| 26. weightLogInfo1 (33 obs)                | \- Id\                        |
+| 27. weightLogInfo2(67 obs)                 | - Date\                       |
+|                                            | - WeightKg\                   |
+|                                            | - WeightPounds\               |
+|                                            | - Fat\                        |
+|                                            | - BMI\                        |
+|                                            | - IsManualReport\             |
+|                                            | - LogId                       |
++--------------------------------------------+-------------------------------+
+
+## 2.4 Data merging
+
+Let's merge them into the whole time data
+
+```{r, eval = FALSE}
+dailyActivity <- bind_rows(dailyActivity1, dailyActivity2)
+heartrateSeconds <- bind_rows(heartrateSeconds1,heartrateSeconds2)
+hourlyCalories <- bind_rows(hourlyCalories1, hourlyCalories2)
+hourlyIntensities <- bind_rows(hourlyIntensities1, hourlyIntensities2)
+hourlySteps <- bind_rows(hourlySteps1, hourlySteps2)
+minuteCaloriesNarrow <- bind_rows(minuteCaloriesNarrow1, minuteCaloriesNarrow2)
+minuteIntensitiesNarrow <- bind_rows(minuteIntensitiesNarrow1, minuteIntensitiesNarrow2)
+minuteMETsNarrow <- bind_rows(minuteMETsNarrow1, minuteMETsNarrow2)
+minuteSleep <- bind_rows(minuteSleep1, minuteSleep2)
+minuteStepsNarrow <- bind_rows(minuteStepsNarrow1, minuteStepsNarrow2)
+weightLogInfo <- bind_rows(weightLogInfo1, weightLogInfo2)
+```
+
+
+Then remove all of object that are no necessary
+```{r, eval = FALSE}
+remove(dailyActivity1, dailyActivity2)
+remove(heartrateSeconds1,heartrateSeconds2)
+remove(hourlyCalories1, hourlyCalories2)
+remove(hourlyIntensities1, hourlyIntensities2)
+remove(hourlySteps1, hourlySteps2)
+remove(minuteCaloriesNarrow1, minuteCaloriesNarrow2)
+remove(minuteIntensitiesNarrow1, minuteIntensitiesNarrow2)
+remove(minuteMETsNarrow1, minuteMETsNarrow2)
+remove(minuteSleep1, minuteSleep2)
+remove(minuteStepsNarrow1, minuteStepsNarrow2)
+remove(weightLogInfo1, weightLogInfo2)
+```
+
+Notice that we missing some of the whole time data that include
+
+-   `dailyCalories`
+-   `dailyIntensities`
+-   `dailySteps`
+-   `minuteCaloriesWide`
+-   `minuteIntensitiesWide`
+-   `minuteStepsWide`
+-   `minuteMETsWide`
+-   `sleepDay`
+
+## 2.5 Data integrity
+
+Let the data be integrity that must conform to principles are accuracy, completeness, consistency, and trustworthiness throughout its life cycle
+
+1.  Accuracy is the degree to which the data conforms to the actual entity being measured or described, so we will check the relation of variables in the merging table in each hierarchy of time from minute to hourly to daily
+
+2.  Completeness is the degree to which the data contains all desired components or measures, so we will check missing data in a minute, hourly, and daily and the effect on data validity
+
+3.  Consistency is the degree to which the data is repeatable from different points of entry or collection, so we will check data type consistency in the date-time hierarchy
+
+4.  And trustworthiness is checked for bias and credibility in the data that are Reliable, Original, Comprehensive, Current, and Cited
+
+    -   Reliable: Due to the sample size being 30 that is the smallest sample size for which the Central Limit Theorem is still valid, but this sample size is not having any demographic information so we could encounter a sampling bias
+    -   Original: This data was generated by a third-party provider - respondents to a distributed survey via Amazon Mechanical Turk so this data is not original from Fitbit
+    -   Comprehensive: Parameters match most of the Bellabeat products' parameters
+    -   Current: Data is 5 years old and may not be relevant
+    -   Cited: cited as [Furberg, R., Brinton, J., Keating, M., & Ortiz, A. (2016)](https://doi.org/10.5281/zenodo.53894)
+
+## 2.6 Data limitations
+
+-   Data is collected 6 years ago in 2016. Users' daily activity, fitness and sleeping habits, diet, and food consumption may have changed since then. Data may not be timely or relevant.
+-   Sample size of 30 FitBit users with no any demographic information so we are not sure if the sample is representative of the population as a whole.
+-   As data is collected in a survey, we are unable to ascertain its integrity or accuracy.
+___
+
+
+# 3. Process
+
+***Documentation of any cleaning or manipulation of data***
+
+We need to clean data so that we could manipulate it much easier.
+
+Before clean data, we need to create a `dataList` vector because we will use the `for()` loop many time
+
+```{r, eval = FALSE}
+dataList <- c(ls(.GlobalEnv))
+```
+
+```{}
+# > dataList
+#  [1] "dailyActivity"           "dailyCalories2"
+#  [3] "dailyIntensities2"       "dailySteps2"
+#  [5] "heartrateSeconds"        "hourlyCalories"
+#  [7] "hourlyIntensities"       "hourlySteps"
+#  [9] "minuteCaloriesNarrow"    "minuteCaloriesWide2"
+# [11] "minuteIntensitiesNarrow" "minuteIntensitiesWide2"
+# [13] "minuteMETsNarrow"        "minuteSleep"
+# [15] "minuteStepsNarrow"       "minuteStepsWide2"
+# [17] "sleepDay2"               "weightLogInfo"
+```
+
+## 3.1 Name convention
+
+Our data name is in `camelCase` and variables are still in `CamelCase`, so it is hard to recognize, so we will change the variable name to `snake_case` using janitor::clean_names()
+
+Let's see how the `clean_names` function change variable names
+
+```{r, eval = FALSE}
+name_before <- c()
+name_after <- c()
+for(i in dataList){
+  i = eval(parse(text = i))
+  name_before <- c(name_before, colnames(i))
+  name_after <- c(name_after, colnames(clean_names(i)))
+}
+cleanNames <- data.frame(name_before, name_after)
+remove(name_before, name_after, i)
+```
+
+```{}
+# > tibble(cleanNames)
+# # A tibble: 274 × 2
+#    name_before              name_after
+#    <chr>                    <chr>
+#  1 Id                       id
+#  2 ActivityDate             activity_date
+#  3 TotalSteps               total_steps
+#  4 TotalDistance            total_distance
+#  5 TrackerDistance          tracker_distance
+#  6 LoggedActivitiesDistance logged_activities_distance
+#  7 VeryActiveDistance       very_active_distance
+#  8 ModeratelyActiveDistance moderately_active_distance
+#  9 LightActiveDistance      light_active_distance
+# 10 SedentaryActiveDistance  sedentary_active_distance
+# # … with 264 more rows
+```
+
+Apply it to all of the data
+
+```{r, eval = FALSE}
+for(i in dataList){
+  i = str_c(i, "<- clean_names(", i, ")")
+  eval(parse(text = i))
+}
+```
+
+## 3.2 Data type
+
+Notice that the `DATETIME` is used in this data is 12-hours format and that is recognized as character type, we need to convert it into the 24-hours format, and the `DATETIME` type
+
+We need to convert data in `DATE` format
+
+```{r, eval = FALSE}
+dailyActivity$activity_date
+```
+
+```{}
+# > tibble(dailyActivity$activity_date)
+# # A tibble: 1,397 × 1
+#    `dailyActivity$activity_date`
+#    <chr>                        
+#  1 3/25/2016                    
+#  2 3/26/2016                    
+#  3 3/27/2016                    
+#  4 3/28/2016                    
+#  5 3/29/2016                    
+#  6 3/30/2016                    
+#  7 3/31/2016                    
+#  8 4/1/2016                     
+#  9 4/2/2016                     
+# 10 4/3/2016                     
+# # … with 1,387 more rows
+```
+
+using `strptime()` with `%m/%d/%Y` argument
+
+```{r, eval = FALSE}
+ymd(format(strptime(dailyActivity$activity_date, "%m/%d/%Y")))
+```
+
+```{}
+# > tibble(ymd(format(strptime(dailyActivity$activity_date,"%m/%d/%Y"))))
+# # A tibble: 1,397 × 1
+#    `ymd(format(strptime(dailyActivity$activity_date, "%m/%d/%Y")))`
+#    <date>       
+#  1 2016-03-25             
+#  2 2016-03-26            
+#  3 2016-03-27            
+#  4 2016-03-28           
+#  5 2016-03-29           
+#  6 2016-03-30           
+#  7 2016-03-31           
+#  8 2016-04-01          
+#  9 2016-04-02         
+# 10 2016-04-03        
+# # … with 1,387 more rows
+```
+
+and data as `DATETIME` format
+
+```{r, eval = FALSE}
+heartrateSeconds$time
+```
+
+```{}
+# > tibble(heartrateSeconds$time)
+# # A tibble: 3,638,339 × 1
+#    `heartrateSeconds$time`
+#    <chr>                  
+#  1 4/1/2016 7:54:00 AM    
+#  2 4/1/2016 7:54:05 AM    
+#  3 4/1/2016 7:54:10 AM    
+#  4 4/1/2016 7:54:15 AM    
+#  5 4/1/2016 7:54:20 AM    
+#  6 4/1/2016 7:54:25 AM    
+#  7 4/1/2016 7:54:30 AM    
+#  8 4/1/2016 7:54:35 AM    
+#  9 4/1/2016 7:54:45 AM    
+# 10 4/1/2016 7:54:55 AM    
+# # … with 3,638,329 more rows
+```
+
+using `strptime()` with `%m/%d/%Y %I:%M:%S %p` argument
+
+```{r, eval = FALSE}
+ymd_hms(format(strptime(heartrateSeconds$time,"%m/%d/%Y %I:%M:%S %p")))
+```
+
+```{}
+# > tibble(ymd_hms(format(strptime(heartrateSeconds$time,"%m/%d/%Y %I:%M:%S %p"))))
+# # A tibble: 3,638,339 × 1
+#    `ymd_hms(format(strptime(heartrateSeconds$time, "%m/%d/%Y %I:%M:%S %…`
+#    <dttm>
+#  1 2016-04-01 07:54:00
+#  2 2016-04-01 07:54:05
+#  3 2016-04-01 07:54:10
+#  4 2016-04-01 07:54:15
+#  5 2016-04-01 07:54:20
+#  6 2016-04-01 07:54:25
+#  7 2016-04-01 07:54:30
+#  8 2016-04-01 07:54:35
+#  9 2016-04-01 07:54:45
+# 10 2016-04-01 07:54:55
+# # … with 3,638,329 more rows
+```
+
+Apply to all of data
+
+```{r, eval = FALSE}
+dailyActivity$activity_date <- ymd(format(strptime(dailyActivity$activity_date,"%m/%d/%Y")))
+dailyCalories2$activity_day <- ymd(format(strptime(dailyCalories2$activity_day,"%m/%d/%Y")))
+dailyIntensities2$activity_day <- ymd(format(strptime(dailyIntensities2$activity_day,"%m/%d/%Y")))
+dailySteps2$activity_day <- ymd(format(strptime(dailySteps2$activity_day,"%m/%d/%Y")))
+heartrateSeconds$time <- ymd_hms(format(strptime(heartrateSeconds$time,"%m/%d/%Y %I:%M:%S %p")))
+hourlyCalories$activity_hour <- ymd_hms(format(strptime(hourlyCalories$activity_hour,"%m/%d/%Y %I:%M:%S %p")))
+hourlyIntensities$activity_hour <- ymd_hms(format(strptime(hourlyIntensities$activity_hour,"%m/%d/%Y %I:%M:%S %p")))
+hourlySteps$activity_hour <- ymd_hms(format(strptime(hourlySteps$activity_hour,"%m/%d/%Y %I:%M:%S %p")))
+minuteCaloriesNarrow$activity_minute <- ymd_hms(format(strptime(minuteCaloriesNarrow$activity_minute,"%m/%d/%Y %I:%M:%S %p")))
+minuteCaloriesWide2$activity_hour <- ymd_hms(format(strptime(minuteCaloriesWide2$activity_hour,"%m/%d/%Y %I:%M:%S %p")))
+minuteIntensitiesNarrow$activity_minute <- ymd_hms(format(strptime(minuteIntensitiesNarrow$activity_minute,"%m/%d/%Y %I:%M:%S %p")))
+minuteIntensitiesWide2$activity_hour <- ymd_hms(format(strptime(minuteIntensitiesWide2$activity_hour,"%m/%d/%Y %I:%M:%S %p")))
+minuteMETsNarrow$activity_minute <- ymd_hms(format(strptime(minuteMETsNarrow$activity_minute,"%m/%d/%Y %I:%M:%S %p")))
+minuteSleep$date <- ymd_hms(format(strptime(minuteSleep$date,"%m/%d/%Y %I:%M:%S %p")))
+minuteStepsNarrow$activity_minute <- ymd_hms(format(strptime(minuteStepsNarrow$activity_minute,"%m/%d/%Y %I:%M:%S %p")))
+minuteStepsWide2$activity_hour <- ymd_hms(format(strptime(minuteStepsWide2$activity_hour,"%m/%d/%Y %I:%M:%S %p")))
+sleepDay2$sleep_day <- ymd(format(strptime(sleepDay2$sleep_day,"%m/%d/%Y %I:%M:%S %p")))
+weightLogInfo$date <- ymd_hms(format(strptime(weightLogInfo$date,"%m/%d/%Y %I:%M:%S %p")))
+```
+
+
+## 3.3 Trimming spaces
+
+Using `stringr::str_squish()` to remove leading, trailing or repeated space inside a string
+
+```{r, eval = FALSE}
+for(table_name in dataList){
+  for(variable_name in colnames(eval(parse(text = table_name)))){
+    i <- str_c(table_name,"$",variable_name)
+#If not set constraint by "character", it will change all variable type of table into character
+    if(typeof(eval(parse(text = i))) == "character"){
+      i <- str_c(i, " <- str_squish(", i, ")")
+      eval(parse(text = i))
+
+    }
+  }
+}
+remove(table_name, variable_name, i)
+print("done")
+```
+
+## 3.4 Removing duplicate data
+
+Next, we process the duplicating data, find and remove it using `dplyr::distinct()` 
+
+```{r, eval = FALSE}
+#-----Checking duplicating data
+
+#Create intermediary variable
+data_name <- c()
+duplicate_count <- c()
+observation <- c()
+distinct <- c()
+duplicate_percent <- c()
+#Loop distinct
+for(i in dataList){
+  a = nrow(eval(parse(text = i))) - nrow(distinct(eval(parse(text = i))))
+  if(a > 0){
+    observation <- c(observation, nrow(eval(parse(text = i))))
+    data_name <- c(data_name, i)
+    distinct <- c(distinct, nrow(distinct(eval(parse(text = i)))))
+    duplicate_count <- c(duplicate_count, a)
+    duplicate_percent <- c(duplicate_percent, str_c(round(a/nrow(eval(parse(text = i)))*100, 1), "%"))
+  }
+}
+#Create summary table
+checkingDuplicateData <- data.frame(data_name, observation, distinct, duplicate_count, duplicate_percent)
+#Clean environment
+remove(data_name, observation, distinct, duplicate_count, duplicate_percent, a, i)
+tibble(checkingDuplicateData)
+print("Done")
+```
+
+```{}
+# > tibble(checkingDuplicateData)
+# # A tibble: 11 × 5
+#    data_name        observation distinct duplicate_count duplicate_perce…
+#    <chr>                  <int>    <int>           <int> <chr>
+#  1 heartrateSeconds     3638339  3614915           23424 0.6%
+#  2 hourlyCalories         46183    46008             175 0.4%
+#  3 hourlyIntensiti…       46183    46008             175 0.4%
+#  4 hourlySteps            46183    46008             175 0.4%
+#  5 minuteCaloriesN…     2770620  2760120           10500 0.4%
+#  6 minuteIntensiti…     2770620  2760120           10500 0.4%
+#  7 minuteMETsNarrow     2770620  2760120           10500 0.4%
+#  8 minuteSleep           387080   382780            4300 1.1%
+#  9 minuteStepsNarr…     2770620  2760120           10500 0.4%
+# 10 sleepDay2                413      410               3 0.7%
+# 11 weightLogInfo            100       98               2 2%
+```
+
+Then, using `dplyr::distinct()` to remove rows with duplicate values
+
+```{r, eval = FALSE}
+for(i in checkingDuplicateData$data_name){
+  if(length(checkingDuplicateData$data_name) > 0){
+    i <- str_c(i," <- distinct(", i, ")")
+    eval(parse(text = i))
+  }
+}
+remove(i)
+```
+
+## 3.5 Missing value
+
+Next, using `janitor::remove_empty()` or `ggplot2::remove_missing()` to removing empty data that are rows or columns composed entirely of NA values)
+
+```{r, eval = FALSE}
+#----- Using `janitor::remove_empty()` or `ggplot2::remove_missing()` to removing empty data
+for(i in dataList){
+  i <- str_c(i," <- remove_empty(", i, ")")
+  eval(parse(text = i))
+}
+# Remove no necessary vestors
+remove(i)
+# Review summary result
+```
+
+Then, Using `dplyr::summarise()` to got the summary of NA values in each variable columns
+
+```{r, eval = FALSE}
+#----- Checking NA values in each variable columns
+#Create a mai n data frame
+checkingNaValue <- data.frame(table_name = character(),
+                           variable_name = character(),
+                           count_NA = integer(),
+                           percent = double())
+  
+for(table_name in dataList){
+  for(variable_name in colnames(eval(parse(text = table_name)))){
+# Put result in to an intermediary data frame
+    i <- eval(parse(text = table_name)) %>% 
+      filter(is.na(eval(parse(text = variable_name)))) %>% 
+      summarise(table_name = table_name,
+                variable_name = variable_name ,
+                count_NA = n(),
+                percent = n()*100/nrow(eval(parse(text = table_name))))
+# Add result from an intermediary data frame into main data frame
+      checkingNaValue <- bind_rows(checkingNaValue, i)
+  }
+}
+
+remove(i, table_name, variable_name)
+```
+```{r, eval = FALSE}
+checkingNaValue %>% 
+  filter(count_NA > 0)
+```
+```{}
+#      table_name variable_name count_NA  percent
+# 1 weightLogInfo           fat       94 95.91837
+```
+
+Depends of project, we got many options to handle NA values that are using `tidyr::drop_na()` to drop all of rows containing NA's in columns, `tidyr::fill()` to fill in NA's in columns using the next or previous value or `tidyr::replace_na()` to specify a value to replace NA in selected columns.
+
+## 3.6 Data accuracy
+
+This dataset is formatted in the long and wide data, and that is organized in hierarchical time series from the highest is daily to the hourly and the lowest is minute
+
+So we can handle missing values in minute data to avoid the huge misleading in the hourly and daily data. Let's start by the minute data
+
+### 3.6.1 Minute data
+
+We got the whole time data of step, calorie, intensity, METs in the long format, and its observations are equal, so we can combine it in to the `minuteActivity` data, first double check it
+
+```{r, eval = FALSE}
+n_distinct(minuteCaloriesNarrow$id)
+n_distinct(minuteIntensitiesNarrow$id)
+n_distinct(minuteMETsNarrow$id)
+n_distinct(minuteStepsNarrow$id)
+
+n_distinct(minuteCaloriesNarrow$activity_minute)
+n_distinct(minuteIntensitiesNarrow$activity_minute)
+n_distinct(minuteMETsNarrow$activity_minute)
+n_distinct(minuteStepsNarrow$activity_minute)
+```
+
+```{}
+# > n_distinct(minuteCaloriesNarrow$id)
+# [1] 35
+# > n_distinct(minuteIntensitiesNarrow$id)
+# [1] 35
+# > n_distinct(minuteMETsNarrow$id)
+# [1] 35
+# > n_distinct(minuteStepsNarrow$id)
+# [1] 35
+# > 
+# > n_distinct(minuteCaloriesNarrow$activity_minute)
+# [1] 88800
+# > n_distinct(minuteIntensitiesNarrow$activity_minute)
+# [1] 88800
+# > n_distinct(minuteMETsNarrow$activity_minute)
+# [1] 88800
+# > n_distinct(minuteStepsNarrow$activity_minute)
+# [1] 88800
+```
+
+
+Then combine it, notice that mets variable is `me_ts`, we must rename it to `mets`
+
+```{r, eval = FALSE}
+minuteActivity <- minuteCaloriesNarrow %>% 
+  inner_join(minuteIntensitiesNarrow, by = c("id", "activity_minute")) %>% 
+  inner_join(minuteStepsNarrow, by = c("id", "activity_minute")) %>% 
+  inner_join(minuteMETsNarrow, by = c("id", "activity_minute")) %>% 
+  rename(mets = me_ts)
+```
+
+```{}
+# > tibble(minuteActivity)
+# # A tibble: 2,723,040 × 6
+#            id activity_minute     calories intensity steps  mets
+#         <dbl> <dttm>                 <dbl>     <dbl> <dbl> <dbl>
+#  1 1503960366 2016-03-12 00:00:00    0.797         0     0    10
+#  2 1503960366 2016-03-12 00:01:00    0.797         0     0    10
+#  3 1503960366 2016-03-12 00:02:00    0.797         0     0    10
+#  4 1503960366 2016-03-12 00:03:00    0.797         0     0    10
+#  5 1503960366 2016-03-12 00:04:00    0.797         0     0    10
+#  6 1503960366 2016-03-12 00:05:00    0.797         0     0    10
+#  7 1503960366 2016-03-12 00:06:00    0.797         0     0    10
+#  8 1503960366 2016-03-12 00:07:00    0.797         0     0    10
+#  9 1503960366 2016-03-12 00:08:00    0.797         0     0    10
+# 10 1503960366 2016-03-12 00:09:00    0.797         0     0    10
+# # … with 2,723,030 more rows
+```
+
+first we check missing Datetime data
+
+```{r, eval = FALSE}
+minuteActivity %>% 
+  #Create date, hour, minute to count
+  group_by(date = as_date(activity_minute), hour = hour(activity_minute), minute = minute(activity_minute)) %>% 
+  distinct(date) %>% 
+  #Count minute by date and arrange results to ascending
+  group_by(date) %>% 
+  summarise(count_minute = n()) %>% 
+  arrange(count_minute)
+```
+
+```{}
+# # A tibble: 62 × 2
+#    date       count_minute
+#    <date>            <int>
+#  1 2016-05-12          960
+#  2 2016-03-12         1440
+#  3 2016-03-13         1440
+#  4 2016-03-14         1440
+#  5 2016-03-15         1440
+#  6 2016-03-16         1440
+#  7 2016-03-17         1440
+#  8 2016-03-18         1440
+#  9 2016-03-19         1440
+# 10 2016-03-20         1440
+# # … with 52 more rows
+```
+
+
+Next we group by `id`
+
+```{r, eval = FALSE}
+minuteActivity %>% 
+  group_by(id, date = as_date(activity_minute), hour = hour(activity_minute), minute = minute(activity_minute)) %>% 
+  distinct(date) %>% 
+  group_by(id, date) %>% 
+  summarise(count_minute = n()) %>% 
+  arrange(count_minute)
+```
+
+```{}
+# # A tibble: 1,935 × 3
+# # Groups:   id [35]
+#            id date       count_minute
+#         <dbl> <date>            <int>
+#  1 7007744171 2016-05-07           60
+#  2 6391747486 2016-04-09          180
+#  3 1644430081 2016-04-10          240
+#  4 4319703577 2016-05-12          240
+#  5 2347167796 2016-04-29          360
+#  6 5553957443 2016-05-12          600
+#  7 5577150313 2016-04-11          600
+#  8 6775888955 2016-04-09          600
+#  9 6775888955 2016-05-07          600
+# 10 1844505072 2016-05-12          660
+# # … with 1,925 more rows
+```
+
+It look like we got a tons of missing data, to got the big picture of the data, we create the visualization to show the number of record in hour for it, the visualization also show the missing values by the gap in timeline
+
+```{r, eval = FALSE}
+minuteActivity %>% 
+  group_by(id, date = as_date(activity_minute), hour = hour(activity_minute), minute = minute(activity_minute)) %>% 
+  distinct(date) %>% 
+  group_by(id, date) %>% 
+  summarise(count_minute = n()) %>%
+  mutate(count_hour = count_minute/60) %>% 
+  ggplot(aes(date, factor(id), label = count_hour)) +
+  geom_tile(aes(fill = factor(count_hour))) +
+  geom_text(size = 2.5)+
+  scale_fill_discrete(name = "hour activity") +
+  labs(x = "activity_date", y = "id",
+      title = "minuteActivity data",
+      subtitle = "Hour summary of the minute activity data")
+```
+
+![image](../documents/image/minuteActivity.png)
+
+Now we need to drop missing values out of dataset and create new minute activity data called `minuteActivityProcessed` data
+
+```{r, eval = FALSE}
+#Create the valid values list
+valid_values <- minuteActivity %>% 
+  group_by(id, activity_date = as_date(activity_minute), hour = hour(activity_minute), minute = minute(activity_minute)) %>% 
+  distinct(activity_date) %>% 
+  group_by(id, activity_date) %>% 
+  summarise(count_minute = n()) %>%
+  filter(count_minute == 1440)
+  
+#Drop missing values
+minuteActivityProcessed <- minuteActivity %>% 
+  mutate(activity_date = as_date(activity_minute)) %>%
+  inner_join(valid_values, by = c("id", "activity_date")) %>% 
+  select(id, activity_minute, calories, intensity, steps, mets)
+
+```
+
+Double check again to assure all missing value has dropped
+
+```{r, eval = FALSE}
+minuteActivityProcessed %>% 
+  group_by(id, date = as_date(activity_minute), hour = hour(activity_minute), minute = minute(activity_minute)) %>% 
+  distinct(date) %>% 
+  group_by(id, date) %>% 
+  summarise(count_minute = n()) %>%
+  mutate(count_hour = count_minute/60) %>% 
+  ggplot(aes(date, factor(id), label = count_hour)) +
+  geom_tile(aes(fill = factor(count_hour))) +
+  geom_text(size = 2.5) +
+  scale_fill_discrete(name = "hour activity") +
+  labs(x = "activity_date", y = "id",
+       title = "minuteActivityProcessed data",
+       subtitle = "Hour summary of the minute activity processed data")
+```
+
+![image](../documents/image/minuteActivityProcessed.png)
+
+Now we check zero values in the dataset
+
+```{r, eval = FALSE}
+colSums(minuteActivityProcessed == 0) 
+```
+
+```{}
+      #        id activity_minute        calories 
+      #         0               0              12 
+      # intensity           steps            mets 
+      #   2305857         2331350              13 
+```
+
+
+Figure out we got twelve of zero values in `calories` and thirteen of zero values in `mets`, to check that zero values are error or not, we also need to query both of previous and next values of zero values by filter
+
+Filter the `calories` data
+
+```{r, eval = FALSE}
+minuteActivityProcessed %>% 
+  filter(calories == 0 | lead(calories) == 0 | lag(calories) == 0)
+```
+
+```{}
+# # A tibble: 36 × 6
+#            id activity_minute     calories intensity steps  mets
+#         <dbl> <dttm>                 <dbl>     <dbl> <dbl> <dbl>
+#  1 1644430081 2016-03-28 23:58:00     1.41         0     0    10
+#  2 1644430081 2016-03-28 23:59:00     0            0     0     0
+#  3 1644430081 2016-03-29 00:00:00     1.41         0     0    10
+#  4 1844505072 2016-04-09 23:58:00     2.99         1    29    32
+#  5 1844505072 2016-04-09 23:59:00     0            0     0     0
+#  6 1844505072 2016-04-10 00:00:00     1.12         0     0    12
+#  7 7086361926 2016-04-05 17:56:00     1.47         0     0    13
+#  8 7086361926 2016-04-05 17:57:00     0            0     0     0
+#  9 7086361926 2016-04-05 17:58:00     6.34         2    86    56
+# 10 7086361926 2016-04-07 17:54:00     6.56         2    69    58
+# # … with 26 more rows
+```
+
+Filter the `mets` data
+
+```{r, eval = FALSE}
+minuteActivityProcessed %>% 
+  filter(mets == 0 | lead(mets) == 0 | lag(mets) == 0)
+```
+
+```{}
+# # A tibble: 39 × 6
+#            id activity_minute     calories intensity steps  mets
+#         <dbl> <dttm>                 <dbl>     <dbl> <dbl> <dbl>
+#  1 1644430081 2016-03-28 23:58:00   1.41           0     0    10
+#  2 1644430081 2016-03-28 23:59:00   0              0     0     0
+#  3 1644430081 2016-03-29 00:00:00   1.41           0     0    10
+#  4 1844505072 2016-04-09 23:58:00   2.99           1    29    32
+#  5 1844505072 2016-04-09 23:59:00   0              0     0     0
+#  6 1844505072 2016-04-10 00:00:00   1.12           0     0    12
+#  7 4057192912 2016-03-30 06:57:00   3.21           1     8    26
+#  8 4057192912 2016-03-30 06:58:00   0.0485         0     0     0
+#  9 4057192912 2016-03-30 06:59:00   1.23           0     0    10
+# 10 7086361926 2016-04-05 17:56:00   1.47           0     0    13
+# # … with 29 more rows
+```
+
+Conclude that zero values are error, we could fill in that the lead value of it
+
+```{r, eval = FALSE}
+minuteActivityProcessed <- minuteActivityProcessed %>% 
+  mutate(calories = ifelse(calories == 0, lead(calories), calories),
+         mets = ifelse(mets == 0, lead(mets), mets))
+```
+
+### 3.6.2 Hourly data
+
+We got all hourly data of steps, intensity and calories
+
+Check out and combine it into one
+
+```{r, eval = FALSE}
+n_distinct(hourlySteps$id)
+n_distinct(hourlyCalories$id)
+n_distinct(hourlyIntensities$id)
+
+n_distinct(hourlySteps$activity_hour)
+n_distinct(hourlyCalories$activity_hour)
+n_distinct(hourlyIntensities$activity_hour)
+```
+
+```{}
+# > n_distinct(hourlySteps$id)
+# [1] 35
+# > n_distinct(hourlyCalories$id)
+# [1] 35
+# > n_distinct(hourlyIntensities$id)
+# [1] 35
+# > 
+# > n_distinct(hourlySteps$activity_hour)
+# [1] 1480
+# > n_distinct(hourlyCalories$activity_hour)
+# [1] 1480
+# > n_distinct(hourlyIntensities$activity_hour)
+# [1] 1480
+```
+
+
+```{r, eval = FALSE}
+hourlyActivity <- hourlySteps %>% 
+  inner_join(hourlyCalories, by = c("id", "activity_hour")) %>% 
+  inner_join(hourlyIntensities, by = c("id", "activity_hour"))
+```
+
+```{}
+# # A tibble: 46,008 × 6
+#            id activity_hour       step_total calories total_intensity
+#         <dbl> <dttm>                   <dbl>    <dbl>           <dbl>
+#  1 1503960366 2016-03-12 00:00:00          0       48               0
+#  2 1503960366 2016-03-12 01:00:00          0       48               0
+#  3 1503960366 2016-03-12 02:00:00          0       48               0
+#  4 1503960366 2016-03-12 03:00:00          0       48               0
+#  5 1503960366 2016-03-12 04:00:00          0       48               0
+#  6 1503960366 2016-03-12 05:00:00          0       48               0
+#  7 1503960366 2016-03-12 06:00:00          0       48               0
+#  8 1503960366 2016-03-12 07:00:00          0       48               0
+#  9 1503960366 2016-03-12 08:00:00          0       48               0
+# 10 1503960366 2016-03-12 09:00:00          8       49               1
+# # … with 45,998 more rows, and 1 more variable: average_intensity <dbl>
+```
+
+We got the `hourlyActivity` data that include `step_total`, `calories`, `total_intensity`, `average_intensity` have been grouped by `id` and `activity_hour`, lets check the completion of data
+
+```{r, eval = FALSE}
+hourlyActivity %>% 
+  group_by(id, activity_date = as_date(activity_hour)) %>% 
+  summarise(hour = n()) %>% 
+  arrange(hour) %>% 
+  ggplot(aes(activity_date, factor(id)))+
+  geom_tile(aes(fill = factor(hour)))+
+  geom_text(aes(label = hour), size = 2.5)+
+  scale_fill_discrete(name = "activity hour") +
+  labs(x = "activity_date", y = "id",
+       title = "hourlyActivity data",
+       subtitle = "Hour summary of the hourly activity data")
+```
+
+![image](../documents/image/hourlyActivity.png)
+
+The original `hourlyActivity` data is not complete, so we going to create the `hourlyActivityProcessed` data using the `minuteActivityProcessed` data
+
+```{r, eval = FALSE}
+hourlyActivityProcessed <- minuteActivityProcessed %>% 
+  mutate(date = as_date(activity_minute),
+         hour = hour(activity_minute),
+         activity_hour = ymd_h(str_c(date, " ", hour))) %>% 
+  group_by(id, activity_hour) %>% 
+  summarise(step_total = sum(steps),
+            calories = round(sum(calories)),
+            total_intensity = sum(intensity),
+            average_intensity = round(mean(intensity), 6),
+            total_mets = sum(mets))
+```
+
+### 3.6.3 Daily data
+
+We got the `dailyActivity` data include of 
+- `total_steps` <br>
+- `very_active_minutes` <br>
+- `sedentary_minutes` <br>
+- `lightly_active_minutes` <br>
+- `fairly_active_minutes` <br>
+- `very_active_minutes` <br>
+- `calories` that have been grouped by `id`, `activity_date`, and the activity `intensity` level
+
+But we also got some distance variables that are missing in the minute and hourly data - `total_distance` - `tracker_distance` - `logged_activities_distance` - `sedentary_active_distance` - `light_active_distance` - `moderately_active_distance`
+
+First we check the missing value in the original daily activity data by visualize data
+
+```{r, eval = FALSE}
+dailyActivity %>%
+  mutate(intensity_hour = round((sedentary_minutes + lightly_active_minutes + fairly_active_minutes + very_active_minutes) / 60)) %>% 
+  ggplot(aes(activity_date, factor(id)))+
+  geom_tile(aes(fill = factor(intensity_hour))) +
+  geom_text(aes(label = intensity_hour), size = 2.5)+
+  scale_fill_discrete(name = "intensity hour") +
+  labs(x = "activity_date", y = "id",
+       title = "dailyActivity data",
+       subtitle = "Intensity hour summary of the daily activity data")
+```
+
+![image](../documents/image/dailyActivity.png)
+
+The original `dailyActivity` data is not complete, so we going to create the `dailyActivityProcessed` data using the `minuteActivityProcessed` data
+
+We will create available variables that are the total steps, activity intensity minutes, and calories
+
+```{r, eval = FALSE}
+dailyActivityProcessed <- minuteActivityProcessed %>% 
+  group_by(id, activity_date = as_date(activity_minute), intensity) %>% 
+  summarise(steps = sum(steps),
+            minutes = n(),
+            calories = sum(calories)) %>% 
+  pivot_wider(names_from = intensity, values_from = c("steps", "minutes", "calories"), values_fill = 0) %>% 
+  mutate(total_steps = steps_0 + steps_1 + steps_2 + steps_3,
+         calories = calories_0 + calories_1 + calories_2 + calories_3) %>% 
+  select(id, activity_date,total_steps, minutes_0, minutes_1, minutes_2, minutes_3, calories) %>% 
+  rename(sedentary_minutes = minutes_0,
+         lightly_active_minutes = minutes_1,
+         fairly_active_minutes = minutes_2,
+         very_active_minutes = minutes_3)
+```
+```{}
+# # A tibble: 1,891 × 8
+#            id activity_date total_steps sedentary_minut… lightly_active_…
+#         <dbl> <date>              <dbl>            <int>            <int>
+#  1 1503960366 2016-03-12          19675             1056              266
+#  2 1503960366 2016-03-13          17106             1106              216
+#  3 1503960366 2016-03-14          10023             1142              260
+#  4 1503960366 2016-03-15          15384             1037              348
+#  5 1503960366 2016-03-16          13498             1122              246
+#  6 1503960366 2016-03-17          14027             1082              311
+#  7 1503960366 2016-03-18          14544             1152              214
+#  8 1503960366 2016-03-19          15424             1114              240
+#  9 1503960366 2016-03-20          15128             1046              360
+# 10 1503960366 2016-03-21          10020             1122              302
+# # … with 1,881 more rows, and 3 more variables:
+# #   fairly_active_minutes <int>, very_active_minutes <int>,
+# #   calories <dbl>
+```
+
+
+To calculate distance, through research, we figure out some solutions that are
+
+> distance (cm) = steps \* stride length = steps \* height \* 0.43 
+> Cited as: [inchcalculator](https://www.inchcalculator.com/distance-to-steps-calculator/)
+>
+> distance (km) = steps / 1312.33595801
+> Cited as: [easyunitconverter](https://www.easyunitconverter.com/steps-to-km)
+
+Because we don't have any demographic information of populations, so we are going to calculate distance by divide steps by 1312.33595801 and compare to the original
+
+```{r, eval = FALSE}
+dailyActivityProcessed <- minuteActivityProcessed %>% 
+  group_by(id, activity_date = as_date(activity_minute), intensity) %>% 
+  summarise(steps = sum(steps),
+            minutes = n(),
+            calories = sum(calories)) %>% 
+  pivot_wider(names_from = intensity, values_from = c("steps", "minutes", "calories"), values_fill = 0) %>% 
+  mutate(sedentary_active_distance = round(steps_0 / 1312.33595801, 2),
+         light_active_distance = round(steps_1 / 1312.33595801, 2),
+         moderately_active_distance = round(steps_2 / 1312.33595801, 2),
+         very_active_distance = round(steps_3 / 1312.33595801, 2),
+         total_distance = sedentary_active_distance + light_active_distance + moderately_active_distance + very_active_distance,
+         total_steps = steps_0 + steps_1 + steps_2 + steps_3,
+         calories = round(calories_0 + calories_1 + calories_2 + calories_3)) %>% 
+  select(id, activity_date, total_steps, 
+         total_distance,
+         sedentary_active_distance,
+         light_active_distance,
+         moderately_active_distance,
+         very_active_distance,
+         minutes_0, minutes_1, minutes_2, minutes_3, calories) %>% 
+  rename(sedentary_minutes = minutes_0,
+         lightly_active_minutes = minutes_1,
+         fairly_active_minutes = minutes_2,
+         very_active_minutes = minutes_3)
+```
+
+```{}
+# # A tibble: 1,891 × 8
+#            id activity_date total_steps sedentary_minut… lightly_active_…
+#         <dbl> <date>              <dbl>            <int>            <int>
+#  1 1503960366 2016-03-12          19675             1056              266
+#  2 1503960366 2016-03-13          17106             1106              216
+#  3 1503960366 2016-03-14          10023             1142              260
+#  4 1503960366 2016-03-15          15384             1037              348
+#  5 1503960366 2016-03-16          13498             1122              246
+#  6 1503960366 2016-03-17          14027             1082              311
+#  7 1503960366 2016-03-18          14544             1152              214
+#  8 1503960366 2016-03-19          15424             1114              240
+#  9 1503960366 2016-03-20          15128             1046              360
+# 10 1503960366 2016-03-21          10020             1122              302
+# # … with 1,881 more rows, and 3 more variables:
+# #   fairly_active_minutes <int>, very_active_minutes <int>,
+# #   calories <dbl>
+```
+
+
+### 3.6.4 Others
+
+#### a. Sleep data
+
+We got the whole time `minuteSleep` data and the half time `sleepDay` data, so we will aggregate the `minuteSleep` data into the whole time `sleepDay` data
+
+First check the complete rate of the `minuteSleep` data by visualize it
+
+```{r, eval = FALSE}
+minuteSleep %>% 
+  group_by(id, sleep_day = as_date(date)) %>% 
+  summarise(count_minute = n()) %>%
+  mutate(sleep_hour = round(count_minute/60)) %>% 
+  ggplot(aes(sleep_day, factor(id), label = sleep_hour)) +
+  geom_tile(aes(fill = factor(sleep_hour))) +
+  geom_text(size = 2.5)+
+  scale_fill_discrete(name = "sleep hour") +
+  labs(x = "sleep date", y = "id",
+       title = "minuteSleep data",
+       subtitle = "Sleep hour summary of the minute sleep data")
+```
+
+![image](../documents/image/minuteSleep.png)
+
+
+The complete rate is great, now assume that the `log_id` is the record of sleep and the `value` is the record of minute sleep, notice that seconds of time in the `date` is slightly differ than other data, we need confirm that
+
+```{r, eval = FALSE}
+minuteSleep %>% 
+  group_by(seconds = second(date)) %>% 
+  summarise(count_value = n())
+```
+
+```{}
+# # A tibble: 4 × 2
+#   seconds count_value
+#     <dbl>       <int>
+# 1       0      247940
+# 2      30      133647
+# 3      48         876
+# 4      51         317
+```
+
+
+Second of `date` get 4 values and it take many record in data, we can't join the `minuteSleep` with the `minuteActivityProcessed` data so we will analyze the `minuteSleep` as apart data
+
+We need to query to explore does this difference have any impact on the analysis
+
+```{r, eval = FALSE}
+minuteSleep %>% 
+  group_by(id, log_id, seconds = second(date)) %>% 
+  summarise(min = min(date),
+            max = max(date),
+            date = as_date(min))
+```
+
+```{}
+# # A tibble: 1,007 × 6
+#            id      log_id seconds min                 max                
+#         <dbl>       <dbl>   <dbl> <dttm>              <dttm>             
+#  1 1503960366 11114919637      30 2016-03-13 02:39:30 2016-03-13 09:44:30
+#  2 1503960366 11126343681       0 2016-03-14 01:32:00 2016-03-14 07:57:00
+#  3 1503960366 11134971215       0 2016-03-15 02:36:00 2016-03-15 08:10:00
+#  4 1503960366 11142197163       0 2016-03-16 03:12:00 2016-03-16 08:14:00
+#  5 1503960366 11142197164       0 2016-03-16 19:43:00 2016-03-16 20:45:00
+#  6 1503960366 11150938241       0 2016-03-17 01:16:00 2016-03-17 08:32:00
+#  7 1503960366 11158035737       0 2016-03-18 01:36:00 2016-03-18 08:26:00
+#  8 1503960366 11162426404      30 2016-03-19 00:08:30 2016-03-19 07:55:30
+#  9 1503960366 11171977262       0 2016-03-20 01:08:00 2016-03-20 09:03:00
+# 10 1503960366 11183536407       0 2016-03-21 01:08:00 2016-03-21 08:14:00
+# # … with 997 more rows, and 1 more variable: date <date>
+```
+
+
+After review the result, conclude that the time is totally random, it have no correlation to another variable.
+
+Now we find correlation of the `value` in the `minuteSleep` data with the `total_minutes_asleep` and `total_time_in_bed` in the `sleepDay` data
+
+```{r, eval = FALSE}
+minuteSleep %>% 
+  group_by(id, log_id, value) %>% 
+  summarise(count = n()) %>% 
+  pivot_wider(names_from = value, values_from = count, names_prefix = "value_")
+```
+
+```{}
+# # A tibble: 1,007 × 5
+#            id      log_id value_1 value_2 value_3
+#         <dbl>       <dbl>   <int>   <int>   <int>
+#  1 1503960366 11114919637     411      15      NA
+#  2 1503960366 11126343681     354      27       5
+#  3 1503960366 11134971215     312      16       7
+#  4 1503960366 11142197163     272      26       5
+#  5 1503960366 11142197164      61       2      NA
+#  6 1503960366 11150938241     402      34       1
+#  7 1503960366 11158035737     379      26       6
+#  8 1503960366 11162426404     447      20       1
+#  9 1503960366 11171977262     469       7      NA
+# 10 1503960366 11183536407     390      30       7
+# # … with 997 more rows
+```
+
+After review result, assume that value 1 is minutes asleep and sum of value 1,2 and 3 is time in bed, let's check it
+
+```{r, eval = FALSE}
+sleepDay <- minuteSleep %>% 
+  mutate(minutes_asleep = ifelse(value == 1, 1, 0),
+         time_in_bed = ifelse(value == 1 | value == 2 | value == 3, 1, 0)) %>% 
+  group_by(id, log_id) %>% 
+  summarise(min_date = min(date),
+            total_minutes_asleep = sum(minutes_asleep),
+            total_time_in_bed = sum(time_in_bed)) %>% 
+  mutate(sleep_day = as_date(min_date)) %>% 
+  group_by(id, sleep_day) %>% 
+  summarise(total_sleep_records = n(),
+            total_minutes_asleep = sum(total_minutes_asleep),
+            total_time_in_bed = sum(total_time_in_bed))
+```
+
+```{}
+# # A tibble: 790 × 5
+# # Groups:   id [25]
+#          id sleep_day  total_sleep_rec… total_minutes_a… total_time_in_b…
+#       <dbl> <date>                <int>            <dbl>            <dbl>
+#  1   1.50e9 2016-03-13                1              411              426
+#  2   1.50e9 2016-03-14                1              354              386
+#  3   1.50e9 2016-03-15                1              312              335
+#  4   1.50e9 2016-03-16                2              333              366
+#  5   1.50e9 2016-03-17                1              402              437
+#  6   1.50e9 2016-03-18                1              379              411
+#  7   1.50e9 2016-03-19                1              447              468
+#  8   1.50e9 2016-03-20                1              469              476
+#  9   1.50e9 2016-03-21                1              390              427
+# 10   1.50e9 2016-03-23                1              281              297
+# # … with 780 more rows
+```
+
+
+Visualize data
+
+```{r, eval = FALSE}
+sleepDay %>% 
+  inner_join(sleepDay2, by = c("id", "sleep_day")) %>% 
+  ggplot(aes(x = sleep_day)) + 
+  geom_line(aes(y = total_minutes_asleep.x, color = "sleepDay")) +
+  geom_line(aes(y = total_minutes_asleep.y, color = "sleepDay2"), alpha = 0.5)+
+  scale_color_manual(values = c(
+    'sleepDay' = 'darkred',
+    'sleepDay2' = 'darkblue')) +
+  facet_wrap(~id)+
+  labs(x = "sleep_date", y = "total_minutes_asleep",
+       color = "total_minutes_asleep",
+       title = "sleepDay data",
+       subtitle = "Compare total minutes asleep of the sleep day data")
+```
+
+![image](../documents/image/sleepDay_total_minutes_asleep.png)
+
+```{r, eval = FALSE}
+sleepDay %>% 
+  inner_join(sleepDay2, by = c("id", "sleep_day")) %>% 
+  ggplot(aes(x = sleep_day)) + 
+  geom_line(aes(y = total_time_in_bed.x, color = "sleepDay")) +
+  geom_line(aes(y = total_time_in_bed.y, color = "sleepDay2"), alpha = 0.5)+
+  scale_color_manual(values = c(
+    'sleepDay' = 'darkred',
+    'sleepDay2' = 'darkblue')) +
+  facet_wrap(~id)+
+  labs(x = "sleep_date", y = "total_time_in_bed",
+       color = "total_time_in_bed",
+       title = "sleepDay data",
+       subtitle = "Compare the total time in bed data of the sleep day data")
+
+```
+
+![image](../documents/image/sleepDay_total_time_in_bed.png)
+
+
+Notice that two line of visualization is slightly different but the data is limited so we would consider  this hypothesis.
+
+#### b. Heart rate data
+
+Create the visualization of data
+
+```{r, eval = FALSE}
+heartrateSeconds %>% 
+  group_by(id, day = as_date(time), hour = hour(time), minute = minute(time)) %>% 
+  summarise(value = mean(value)) %>% 
+  group_by(id, day) %>% 
+  summarise(count_minute = n()) %>%
+  mutate(heartrate_hour = round(count_minute/60)) %>% 
+  ggplot(aes(day, factor(id), label = heartrate_hour)) +
+  geom_tile(aes(fill = factor(heartrate_hour))) +
+  geom_text(size = 2.5)+
+  scale_fill_discrete(name = "heart rate hour") +
+  labs(x = "date", y = "id",
+       title = "heartrateSeconds data",
+       subtitle = "Hour summary of the heart rate in second data")
+```
+
+![image](../documents/image/heartrateSeconds.png)
+
+Because the heart rate depends on the age of people to perform analysis and we don't have any demographic information in this dataset so we will not perform analysis on the heart rate data
+
+#### c. Weight log data
+
+Create the visualization of the `weightLogInfo`
+
+```{r, eval = FALSE}
+weightLogInfo %>% 
+  mutate(date = as_date(date)) %>% 
+  ggplot(aes(date, factor(id)))+
+  geom_tile(aes(fill = factor(round(bmi)))) + 
+  geom_text(aes(label = round(weight_kg)), size = 2.5)+
+  scale_fill_discrete(name = "BMI") +
+  labs(x = "date", y = "id",
+       title = "weightLogInfo data",
+       subtitle = "Daily summary of the weight log info data")
+```
+
+![image](../documents/image/weightLogInfo.png)
+
+It looks like we can't use this weight log data because too few data records
+
+By now, we were processed all of data for analysis phase. In the next part, we will perform analysis on the activity and sleep data.
+
+___
+
+# 4. Analyze
+
+***A summary of the analysis***
+
+## 4.1 Activity
+
+In this analysis, we will aggregate data into the weekly data using the `minuteActivityProcessed` data to explore the trend of the dataset
+
+First we create the `hourlyActivitySummary` that are grouped by intensity
+
+```{r, eval = FALSE}
+hourlyActivitySummary <- minuteActivityProcessed %>% 
+  mutate(step_minutes = case_when(steps > 0 ~ 1,
+                                  steps == 0 ~ 0),
+         date = as_date(activity_minute),
+         hour = hour(activity_minute),
+         activity_hour = ymd_h(str_c(date, " ", hour))) %>% 
+  group_by(id, activity_hour, intensity) %>% 
+  summarise(steps = sum(steps),
+            step_minutes = sum(step_minutes),
+            active_minutes = n(),
+            calories = sum(calories),
+            mets = sum(mets)) %>% 
+  mutate(distance = steps / 1312.33595801)
+```
+
+```{}
+# # A tibble: 76,624 x 9
+#        id activity_hour       intensity steps step_minutes active_minutes
+#     <dbl> <dttm>                  <dbl> <dbl>        <dbl>          <int>
+#  1 1.50e9 2016-03-12 00:00:00         0     0            0             60
+#  2 1.50e9 2016-03-12 01:00:00         0     0            0             60
+#  3 1.50e9 2016-03-12 02:00:00         0     0            0             60
+#  4 1.50e9 2016-03-12 03:00:00         0     0            0             60
+#  5 1.50e9 2016-03-12 04:00:00         0     0            0             60
+#  6 1.50e9 2016-03-12 05:00:00         0     0            0             60
+#  7 1.50e9 2016-03-12 06:00:00         0     0            0             60
+#  8 1.50e9 2016-03-12 07:00:00         0     0            0             60
+#  9 1.50e9 2016-03-12 08:00:00         0     0            0             60
+# 10 1.50e9 2016-03-12 09:00:00         0     0            0             59
+# # ... with 76,614 more rows, and 3 more variables: calories <dbl>,
+# #   mets <dbl>, distance <dbl>
+```
+
+
+Then create the `weeklyActivityAverage` and visualize it to finding the trend
+
+```{r, eval = FALSE}
+weeklyActivityAverage <- hourlyActivitySummary %>% 
+  pivot_wider(names_from = intensity,
+              values_from = c(steps, calories, mets, step_minutes, active_minutes, distance),
+              values_fill = 0) %>% 
+  mutate(total_steps = steps_0 + steps_1 + steps_2 + steps_3,
+         total_calories = calories_0 + calories_1 + calories_2 + calories_3,
+         total_mets = sum(mets_0 + mets_1 + mets_2 + mets_3),
+         total_step_minutes = step_minutes_0 + step_minutes_1 + step_minutes_2 + step_minutes_3,
+         total_distance = distance_0 + distance_1 + distance_2 + distance_3,
+         week_days = wday(activity_hour, label = T, week_start = 1)) %>% 
+  group_by(week_days, activity_hour = hour(activity_hour), id) %>% 
+  summarise_all(list(mean)) %>% 
+  group_by(week_days, activity_hour) %>% 
+  summarise(across(!(id), list(average = mean))) %>% 
+  mutate_if(is.numeric, ~round(., digits = 1))
+```
+```{}
+# # A tibble: 168 x 31
+#    week_days activity_hour steps_0_average steps_1_average
+#    <ord>             <dbl>           <dbl>           <dbl>
+#  1 Mon                   0             0              28.7
+#  2 Mon                   1             0              13.6
+#  3 Mon                   2             0               7.2
+#  4 Mon                   3             0               5.6
+#  5 Mon                   4             0              14.3
+#  6 Mon                   5             0              33.8
+#  7 Mon                   6             0             109. 
+#  8 Mon                   7             0.1           259. 
+#  9 Mon                   8             0.3           262. 
+# 10 Mon                   9             0.1           273. 
+# # ... with 158 more rows, and 27 more variables: steps_2_average <dbl>,
+# #   steps_3_average <dbl>, calories_0_average <dbl>,
+# #   calories_1_average <dbl>, calories_2_average <dbl>,
+# #   calories_3_average <dbl>, mets_0_average <dbl>,
+# #   mets_1_average <dbl>, mets_2_average <dbl>, mets_3_average <dbl>,
+# #   step_minutes_0_average <dbl>, step_minutes_1_average <dbl>,
+# #   step_minutes_2_average <dbl>, step_minutes_3_average <dbl>, ...
+```
+
+First, we will explore the overall total steps and active minutes on weekdays
+
+Total steps on weekdays 
+
+```{r, eval = FALSE}
+weeklyActivityAverage %>%
+  summarise(total_steps = sum(total_steps_average)) %>% 
+  ggplot(aes(x = week_days, y = total_steps))+
+  geom_col(aes(fill = week_days))+
+  geom_text(aes(label = total_steps), vjust = -1)+
+  geom_line(group = 1, size = 1.5, color = "brown")+
+  geom_point(color = "white")
+```
+
+![total_steps](../documents/image/weeklyActivityAverage_total_steps.png)
+
+Active minutes on weekdays 
+
+```{r, eval = FALSE}
+weeklyActivityAverage %>% 
+  summarise(active_0 = sum(active_minutes_0_average),
+            active_1 = sum(active_minutes_1_average),
+            active_2 = sum(active_minutes_2_average),
+            active_3 = sum(active_minutes_3_average)) %>% 
+  pivot_longer(cols = 2:5, names_to = "data", values_to = "value") %>% 
+  mutate(percent = value / 1440 * 100) %>% 
+  arrange(desc(value)) %>% 
+  ggplot(aes(x = "", y =value, fill = data))+
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0)+
+  facet_wrap(~week_days)+
+  scale_fill_discrete(name="Active minute", labels=c("sedentary_active_minutes",
+                                             "lightly_active_minutes",
+                                             "fairly_active_minutes",
+                                             "very_active_minutes"))+
+  labs(x = "", y = "",
+       title = "Activity minute on weekdays")
+```
+
+![active minutes](../documents/image/weeklyActivityAverage_active_minutes.png)
+
+Then, dive deeper to hourly data on weekdays to know people behave cause that trend
+
+Visualization it
+
+```{r, eval = FALSE}
+weeklyActivityAverage %>% 
+  select(week_days, activity_hour, starts_with("total")) %>% 
+  pivot_longer(cols = 3:7, names_to = "data", values_to = "value") %>% 
+  ggplot(aes(x = factor(activity_hour), y = value, group = week_days, color = week_days))+
+  geom_line()+
+  geom_point()+
+  facet_grid(rows = vars(data), scales = "free")+
+  labs(x = "activity hour", y = "value",
+       title = "Weekly Summary data",
+       subtitle = "weekly summary of the activity data")
+```
+
+![image](../documents/image/weeklyActivityAverage_summary.png)
+
+
+It look like have correlation between the weekday, try another way to visualize
+
+```{r, eval = FALSE}
+weeklyActivityAverage %>% 
+  select(week_days, activity_hour, starts_with("total") & !(total_distance_average)) %>% 
+  pivot_longer(cols = 3:6, names_to = "weekly_data", values_to = "value") %>% 
+  ggplot(aes(activity_hour, value, group = weekly_data, fill = weekly_data)) +
+  geom_col()+
+  geom_line(size = 0.2, color = "darkred")+
+  facet_grid(cols = vars(week_days), rows = vars(weekly_data), scales = "free")+
+  labs(x = "activity hour", y = "value",
+       title = "Weekly Summary data",
+       subtitle = "weekly summary of the activity data")
+
+```
+
+![image](../documents/image/weeklyActivityAverage_separate.png)
+
+The visualization said the average active intensity is difference between the weekday
+
+So I will take it into apart, and reorder it using the `tidytext::reorder_within`
+
+```{r, eval = FALSE}
+weeklySummary <- function(a = "total_steps_average"){
+  weeklyActivityAverage %>%
+    select(week_days, activity_hour, starts_with("total")) %>% 
+    pivot_longer(cols = 3:7, names_to = "data", values_to = "value") %>% 
+    filter(data == a) %>% 
+    ggplot(aes(reorder_within(activity_hour, value, week_days), value, group = 1.5, fill = week_days)) +
+    geom_col() +
+    geom_text(aes(label = round(value)), size = 2.5, hjust = -0.3, angle = 90) +
+    scale_x_reordered() +
+    facet_wrap(vars(week_days), scales = "free_x") +
+    # This keeps the labels from disappearing 
+    coord_cartesian(clip = 'off')+   
+    # This widens the right margin
+    theme(plot.margin = unit(c(1,5,1,1), "lines"),
+          panel.background = element_blank())+
+    labs(y = a, x = "activity hour",
+         title = "Weekly summary",
+         subtitle = str_c("Weekly summary of ", a))
+}
+```
+
+```{r, eval = FALSE}
+weeklySummary("total_steps_average")
+weeklySummary("total_calories_average")
+weeklySummary("total_mets_average")
+weeklySummary("total_step_minutes_average")
+```
+
+![total_steps_average](../documents/image/weeklySummary_total_steps_average.png)
+
+![total_calories_average](../documents/image/weeklySummary_total_calories_average.png)
+
+![total_mets_average](../documents/image/weeklySummary_total_mets_average.png)
+
+![total_step_minutes_average](../documents/image/weekly_summary_total_step_minutes_average.png)
+
+So we were known the time that people exercise on weekdays. In the next part we will explore the sleep data to find new trend in the dataset
+
+## 4.2 Sleep
+
+In sleep data, we will aggregate it into the weekly data like activity data too, but first we will see the big picture of sleep data
+
+The time people go to sleep
+
+```{r, eval = FALSE}
+minuteSleep %>% 
+  group_by(log_id) %>% 
+  summarise(min_date = min(date),
+            max_date = max(date)) %>% 
+  mutate(min_hour = hour(min_date),
+         max_hour = hour(max_date)) %>% 
+  ggplot(aes(x = factor(min_hour), fill = factor(min_hour))) +
+  geom_bar()+
+  geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)+
+  scale_fill_discrete(name = "sleep hour")+
+  labs(x = "sleep hour",
+       title = "minuteSleep summary",
+       subtitle = "The time people go to sleep")
+```
+
+![image](../documents/image/minuteSleep_sleep_hour.png)
+
+The time people wake up
+
+```{r, eval = FALSE}
+minuteSleep %>% 
+  group_by(log_id) %>% 
+  summarise(min_date = min(date),
+            max_date = max(date)) %>% 
+  mutate(min_hour = hour(min_date),
+         max_hour = hour(max_date)) %>% 
+  ggplot(aes(x = factor(max_hour), fill = factor(max_hour))) +
+  geom_bar()+
+  geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)+
+  scale_fill_discrete(name = "wake up hour")+
+  labs(x = "hour",
+       title = "minuteSleep summary",
+       subtitle = "The time people wake up")
+```
+
+![image](../documents/image/minuteSleep_wake_hour.png)
+
+Now we will focus more detail in the weekday
+
+Create the `sleepLogInfo` data with more detail than the `sleepDay` data
+
+```{r, eval = FALSE}
+sleepLogInfo <- minuteSleep %>% 
+  mutate(minutes_asleep = ifelse(value == 1, 1, 0)) %>% 
+  group_by(id, log_id) %>% 
+  summarise(total_minutes_asleep = sum(minutes_asleep),
+            total_time_in_bed = n(),
+            sleep_date = min(date),
+            wake_date = max(date),
+            date = as_date(min(date))) %>% 
+  mutate(week_days = wday((sleep_date), label = TRUE, week_start = 1))
+```
+
+```{}
+# # A tibble: 1,007 x 8
+#          id  log_id total_minutes_a~ total_time_in_b~ sleep_date         
+#       <dbl>   <dbl>            <dbl>            <int> <dttm>             
+#  1   1.50e9 1.11e10              411              426 2016-03-13 02:39:30
+#  2   1.50e9 1.11e10              354              386 2016-03-14 01:32:00
+#  3   1.50e9 1.11e10              312              335 2016-03-15 02:36:00
+#  4   1.50e9 1.11e10              272              303 2016-03-16 03:12:00
+#  5   1.50e9 1.11e10               61               63 2016-03-16 19:43:00
+#  6   1.50e9 1.12e10              402              437 2016-03-17 01:16:00
+#  7   1.50e9 1.12e10              379              411 2016-03-18 01:36:00
+#  8   1.50e9 1.12e10              447              468 2016-03-19 00:08:30
+#  9   1.50e9 1.12e10              469              476 2016-03-20 01:08:00
+# 10   1.50e9 1.12e10              390              427 2016-03-21 01:08:00
+# # ... with 997 more rows, and 3 more variables: wake_date <dttm>,
+# #   date <date>, week_days <ord>
+```
+
+Summary sleep time in week
+
+```{r, eval = FALSE}
+sleepLogInfo %>% 
+  group_by(week_days, 
+           sleep_time = hour(sleep_date)) %>% 
+  summarise(count = n()) %>% 
+  ggplot(aes(x = factor(sleep_time), y = count))+
+  geom_col(aes(fill = factor(sleep_time))) +
+  geom_text(aes(label = count), vjust = -0.5, size = 3)+
+  facet_wrap(~week_days)+
+  scale_fill_discrete(name = "sleep hour")+
+  labs(x = "hour",
+       title = "sleepLogInfo summary",
+       subtitle = "The time people go to sleep on weekdays")
+```
+
+![image](../documents/image/sleepLogInfo_sleep_hour.png)
+
+Summary wake up time in week
+
+```{r, eval = FALSE}
+sleepLogInfo %>% 
+  group_by(week_days, 
+           wake_time = hour(wake_date)) %>% 
+  summarise(count = n()) %>% 
+  ggplot(aes(x = factor(wake_time), y = count))+
+  geom_col(aes(fill = factor(wake_time))) +
+  geom_text(aes(label = count), vjust = -0.5, size = 3)+
+  facet_wrap(~week_days)+
+  scale_fill_discrete(name = "wake up hour")+
+  labs(x = "hour",
+       title = "sleepLogInfo summary",
+       subtitle = "The time people wake up on weekdays")
+```
+
+![image](../documents/image/sleepLogInfo_wake_hour.png)
+
+Summary sleep time in week
+
+```{r, eval = FALSE}
+sleepLogInfo %>% 
+  group_by(id, week_days) %>% 
+  summarise(average_minutes_asleep = mean(total_minutes_asleep),
+            average_time_in_bed = mean(total_time_in_bed)) %>% 
+  group_by(week_days) %>% 
+  summarise(average_hour_asleep = mean(average_minutes_asleep)/60,
+            average_time_in_bed = mean(average_time_in_bed)/60) %>% 
+  ggplot(aes(x = week_days, y = average_hour_asleep, group = 1)) +
+  geom_col(aes(fill = week_days))+
+  geom_text(aes(label = round(average_hour_asleep, 1)), vjust = -0.5)+
+  labs(y = "hour",
+       title = "sleepLogInfo summary",
+       subtitle = "Average time people asleep")
+```
+
+![image](../documents/image/sleepLogInfo_average_asleep.png)
+
+___
+
+# 5. Share and Act
+
+***Supporting visualizations and key findings***
+
+I already uploaded the Bellabeat data presentation on Tableau [Link](https://public.tableau.com/app/profile/phatlv/viz/BellabeatCasestudy_16564986351180/Story1)
+
+The presentation includes the analysis report, final conclusions, and recommendations based on the analysis
