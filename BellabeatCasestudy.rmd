@@ -134,6 +134,7 @@ Extract them, we got
 ![Data from 03/12/2016 to 04/11/2016](../documents/image/3.png)
 
 ![Data from 04/12/2016 to 05/12/2016](../documents/image/2.png)
+
 It looks like some of the data from the first period time are missing. We will explore that later on. First, we are going to import and merge data that are available during the whole period
 
 We need to install and load packages that are the collection of R functions, compiled code, and sample data to make easier and faster data process

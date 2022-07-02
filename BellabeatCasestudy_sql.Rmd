@@ -1,5 +1,5 @@
 ---
-title: "SQL"
+title: "Bellabeat case study with SQL"
 author: "PhatLV"
 date: '`r Sys.Date()`'
 output: 
@@ -323,7 +323,7 @@ GROUP BY
   sleep_day;
 ```
 
-#2. Analyze
+# 2. Analyze
 ## 2.1 Activity data
 
 Create the hourly activity data with more detail than the original hourly activity data by aggregate data from the minute activity data

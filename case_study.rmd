@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-## Presentation [on Tableau](https://public.tableau.com/app/profile/phatlv/viz/## BellabeatCasestudy_16564986351180/Story1)  <br>
-## Processing data [with R](https://phatle96.github.io/r)  <br>
-## Processing data [with SQL](https://phatle96.github.io/sql)  <br>
-## Source code hosted [on Github](https://github.com/phatle96/case_study)  <br>
+## Presentation [on Tableau](https://public.tableau.com/app/profile/phatlv/viz/BellabeatCasestudy_16564986351180/Story1)  <br>
+## Processing data [with R](https://phatle96.github.io/BellabeatCasestudy)  <br>
+## Processing data [with SQL](https://phatle96.github.io/BellabeatCasestudy_sql)  <br>
+## Source code [on Github](https://github.com/phatle96/case_study)  <br>

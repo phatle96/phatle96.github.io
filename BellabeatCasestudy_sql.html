@@ -11,9 +11,9 @@
 
 <meta name="author" content="PhatLV" />
 
-<meta name="date" content="2022-06-30" />
+<meta name="date" content="2022-07-03" />
 
-<title>SQL</title>
+<title>Bellabeat case study with SQL</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1598,9 +1598,9 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">SQL</h1>
+<h1 class="title toc-ignore">Bellabeat case study with SQL</h1>
 <h4 class="author">PhatLV</h4>
-<h4 class="date">2022-06-30</h4>
+<h4 class="date">2022-07-03</h4>
 
 </div>
 
@@ -1902,7 +1902,12 @@ FROM
 GROUP BY
   id,
   sleep_day;</code></pre>
-<p>#2. Analyze ## 2.1 Activity data</p>
+</div>
+</div>
+<div id="analyze" class="section level1">
+<h1>2. Analyze</h1>
+<div id="activity-data-1" class="section level2">
+<h2>2.1 Activity data</h2>
 <p>Create the hourly activity data with more detail than the original
 hourly activity data by aggregate data from the minute activity data</p>
 <pre class="sql"><code>CREATE TABLE IF NOT EXISTS hourlyActivitySummary AS
