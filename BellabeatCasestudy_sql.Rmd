@@ -1,5 +1,5 @@
 ---
-title: "Bellabeat case study with SQL"
+title: "**How consumers are using their fitness tracker**<br /> Bellabeat case study with SQL"
 author: "PhatLV"
 date: '`r Sys.Date()`'
 output: 
@@ -8,16 +8,166 @@ output:
     toc_float: true
     code_folding: show
 ---
+<br>
+*(Not interested in SQL? [Switch to Bellabeat Casestudy with R](https://phatle96.github.io/BellabeatCasestudy))*
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+# 0. Introduction
 
+***Welcome to the Bellabeat data analysis case study!***
 
-# 1 Process
+In this case study, I will perform many real-world tasks of a junior data analyst. I will imagine that I am working for Bellabeat, a high-tech manufacturer of health-focused products for women, and meet different characters and team members.
 
-## 1.1 Activity data
-### 1.1.1 Daily
+In order to answer the key business questions, I will follow the steps of the data analysis process: ask, prepare, process, analyze, share, and act.
+
+## 0.1 Scenario
+
+I am a junior data analyst working on the marketing analyst team at Bellabeat, a high-tech manufacturer of health-focused products for women. Bellabeat is a successful small company, but they have the potential to become a larger player in the global smart device market.
+
+Urška Sršen, co-founder and Chief Creative Officer of Bellabeat, believes that analyzing smart device fitness data could help unlock new growth opportunities for the company.
+
+I have been asked to focus on one of Bellabeat's products and analyze smart device data to gain insight into how consumers are using their smart devices. The insights I discover will then help guide marketing strategy for the company. I will present my analysis to the Bellabeat executive team along with high-level recommendations for Bellabeat's marketing strategy
+
+## 0.2 Characters & Products
+
+### 0.2.1. Characters
+
+**Urška Sršen**: Bellabeat's co-founder and Chief Creative Officer
+
+**Sando Mur**: Mathematician and Bellabeat's cofounder; key member of the Bellabeat executive team
+
+**Bellabeat marketing analytics team**: A team of data analysts responsible for collecting, analyzing, and reporting data that helps guide Bellabeat's marketing strategy. I joined this team six months ago and have been busy learning about Bellabeat's mission and business goals - as well as how I, as a junior data analyst, can help Bellabeat achieve them
+
+### 0.2.2 Products
+
+**Bellabeat app**: The Bellabeat app provides users with health data related to their activity, sleep, stress, menstrual cycle, and mindfulness habits. This data can help users better understand their current habits and make healthy decisions. The Bellabeat app connects to their line of smart wellness products
+
+**Leaf**: Bellabeat's classic wellness tracker can be worn as a bracelet, necklace, or clip. The Leaf tracker connects to the Bellabeat app to track activity, sleep, and stress.
+
+**Time**: This wellness watch combines the timeless look of a classic timepiece with smart technology to track user activity, sleep, and stress. The Time watch connects to the Bellabeat app to provide you with insights into your daily wellness.
+
+**Spring**: This is a water bottle that tracks daily water intake using smart technology to ensure that you are appropriately hydrated throughout the day. The Spring bottle connects to the Bellabeat app to track your hydration levels.
+
+**Bellabeat membership**: Bellabeat also offers a subscription-based membership program for users. Membership gives users 24/7 access to fully personalized guidance on nutrition, activity, sleep, health and beauty, and mindfulness based on their lifestyle and goals.
+
+## 0.3 About the company
+
+Urška Sršen and Sando Mur founded Bellabeat, a high-tech company that manufactures health-focused smart products. Sršen used her background as an artist to develop beautifully designed technology that informs and inspires women around the world. Collecting data on activity, sleep, stress, and reproductive health has allowed Bellabeat to empower women with knowledge about their own health and habits.
+
+Since it was founded in 2013, Bellabeat has grown rapidly and quickly positioned itself as a tech-driven wellness company for women. By 2016, Bellabeat had opened offices around the world and launched multiple products. Bellabeat products became available through a growing number of online retailers in addition to their own e-commerce channel on their website.
+
+The company has invested in traditional advertising media, such as radio, out-of-home billboards, print, and television, but focuses on digital marketing extensively. Bellabeat invests year-round in Google Search, maintaining active Facebook and Instagram pages, and consistently engages consumers on Twitter. Additionally, Bellabeat runs video ads on Youtube and display ads on the Google Display Network to support campaigns around key marketing dates.
+
+Sršen knows that an analysis of Bellabeat's available consumer data would reveal more opportunities for growth. She has asked the marketing analytics team to focus on a Bellabeat product and analyze smart device usage data in order to gain insight into how people are already using their smart devices. Then, using this information, she would like high-level recommendations for how these trends can inform Bellabeat marketing strategy.
+
+___
+
+# 1. Business task summary
+
+***A clear statement of the business task***
+
+## 1.1 Purpose
+
+The goal of this project is to study how consumers are using their smart fitness device. The project will identify trends in the smart fitness device data. After identifying trends, select one Bellabeat product to apply these insights to identify recommendations that can inform Bellabeat marketing strategy.
+
+The final deliverable will provide recommendations about how consumers are using their smart device.
+
+## 1.2 Deliverables
+
+Produce a report with the following deliverables:
+
+1.  A clear summary of the business task
+2.  A description of all data sources used
+3.  Documentation of any cleaning or manipulation of data
+4.  A summary of analysis
+5.  Supporting visualizations and key findings
+6.  Top high-level content recommendations based on analysis
+
+___
+
+# 2. Prepare 
+
+***A description of all data sources used***
+
+## 2.1 Data sources
+
+In this task, I was given a public data set that explores smart device users' daily habits that is [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit) and was stored on Kaggle by Mobius with [CC0 liscense](https://creativecommons.org/publicdomain/zero/1.0/)
+
+But after the explorer, we figured out that the data is copyright with [CCBY - Attribution](https://creativecommons.org/licenses/by/4.0/legalcode) license, and originally stored on [Zenodo](https://zenodo.org/record/53894#.YoD7HNpBy02), so if we use this data, we are required attribution to the creator and include the BY element.
+
+So we will use the original data stored on Zenodo and cite Furberg, R., Brinton, J., Keating, M., & Ortiz, A. (2016). Crowd-sourced Fitbit datasets 03.12.2016-05.12.2016 [Data set]. Zenodo. [\@furberg2016](https://doi.org/10.5281/zenodo.53894)\
+*(Zenodo is a general-purpose open repository developed under the European OpenAIRE program and operated by CERN. It allows researchers to deposit research papers, data sets, research software, reports, and other digital artifacts.)*
+
+**Content:**
+
+-   These datasets were generated by respondents to a distributed survey via Amazon Mechanical Turk between 03.12.2016-05.12.2016.
+
+-   Thirty eligible Fitbit users consented to the submission of personal tracker data, including minute-level output for physical activity, heart rate, and sleep monitoring.
+
+-   Individual reports can be parsed by export session ID (column A) or timestamp (column B). Variation between output represents the use of different types of Fitbit trackers and individual tracking behaviors/preferences.
+
+After downloading data, we got two compressed files named by two periods of time, the first is from 03/12/2016 to 04/11/2016 and another is from 04/12/2016 to 05/12/2016
+
+![The raw data](../documents/image/1.png)
+
+Extract them, we got
+
+![Data from 03/12/2016 to 04/11/2016](../documents/image/3.png)
+
+![Data from 04/12/2016 to 05/12/2016](../documents/image/2.png)
+
+It looks like some of the data from the first period time are missing. We will explore that later on. First, we are going to import and merge data that are available during the whole period
+
+We need to install and load packages that are the collection of R functions, compiled code, and sample data to make easier and faster data process
+
+## 2.2 Import
+
+Because BigQuery only accept values in date columns must use 
+the dash (-) separator and the date must be in the following 
+format: "YYYY-MM-DD" (year-month-day), but date columns in our dataset is in format "MM/DD/YYYY I:M:S p" so we add table in to Bigquery and edit schema of date columns into String type. Then use `select parse_datetime(format_string, datetime_string)` to return datetime type of date columns with format_string is "%m/%d/%Y %I:%M:%S %p"
+
+## 2.3 Merge
+
+Using the UNION operator to merge two-period time into one, after that, notice we are missing some of the whole time data that include
+
+-   `dailyCalories`
+-   `dailyIntensities`
+-   `dailySteps`
+-   `minuteCaloriesWide`
+-   `minuteIntensitiesWide`
+-   `minuteStepsWide`
+-   `minuteMETsWide`
+-   `sleepDay`
+
+## 2.4 Data integrity
+
+Let the data be integrity that must conform to principles are accuracy, completeness, consistency, and trustworthiness throughout its life cycle
+
+1.  Accuracy is the degree to which the data conforms to the actual entity being measured or described, so we will check the relation of variables in the merging table in each hierarchy of time from minute to hourly to daily
+
+2.  Completeness is the degree to which the data contains all desired components or measures, so we will check missing data in a minute, hourly, and daily and the effect on data validity
+
+3.  Consistency is the degree to which the data is repeatable from different points of entry or collection, so we will check data type consistency in the date-time hierarchy
+
+4.  And trustworthiness is checked for bias and credibility in the data that are Reliable, Original, Comprehensive, Current, and Cited
+
+    -   Reliable: Due to the sample size being 30 that is the smallest sample size for which the Central Limit Theorem is still valid, but this sample size is not having any demographic information so we could encounter a sampling bias
+    -   Original: This data was generated by a third-party provider - respondents to a distributed survey via Amazon Mechanical Turk so this data is not original from Fitbit
+    -   Comprehensive: Parameters match most of the Bellabeat products' parameters
+    -   Current: Data is 5 years old and may not be relevant
+    -   Cited: cited as [Furberg, R., Brinton, J., Keating, M., & Ortiz, A. (2016)](https://doi.org/10.5281/zenodo.53894)
+
+## 2.5 Data limitations
+
+-   Data is collected 6 years ago in 2016. Users' daily activity, fitness and sleeping habits, diet, and food consumption may have changed since then. Data may not be timely or relevant.
+-   Sample size of 30 FitBit users with no any demographic information so we are not sure if the sample is representative of the population as a whole.
+-   As data is collected in a survey, we are unable to ascertain its integrity or accuracy.
+
+___
+
+# 3. Process
+
+## 3.1 Activity data
+### 3.1.1 Daily
 
 ```{sql, eval = F}
 SELECT
@@ -31,7 +181,7 @@ WHERE
   (very_active_minutes + fairly_active_minutes + lightly_active_minutes + sedentary_minutes) = 1440
 ```
 
-### 1.1.2 Hourly
+### 3.1.2 Hourly
 
 ```{sql, eval = F}
 CREATE TABLE IF NOT EXISTS fitabase_data.hourlyActivity AS
@@ -80,7 +230,7 @@ WHERE
   count_hour = 24;
 ```
 
-### 1.1.3 Minute
+### 3.1.3 Minute
 
 ```{sql, eval = F}
 CREATE TABLE IF NOT EXISTS fitabase_data.minuteActivity AS
@@ -283,7 +433,7 @@ FROM (
 ```
 
 
-## 1.2 Sleep data
+## 3.2 Sleep data
 
 ```{sql, eval = F}
 CREATE TABLE IF NOT EXISTS
@@ -323,8 +473,10 @@ GROUP BY
   sleep_day;
 ```
 
-# 2. Analyze
-## 2.1 Activity data
+___
+
+# 4. Analyze
+## 4.1 Activity data
 
 Create the hourly activity data with more detail than the original hourly activity data by aggregate data from the minute activity data
 
@@ -423,7 +575,7 @@ FROM (
         3)))
 ```
 
-## 2.2 Sleep data
+## 4.2 Sleep data
 
 Create the sleep log info data by aggregate data from the minute sleep data
 
@@ -496,3 +648,12 @@ GROUP BY
   log_id;
 ```
 
+___
+
+# 5. Share and Act
+
+***Supporting visualizations and key findings***
+
+I already uploaded the Bellabeat data presentation [on Tableau](https://public.tableau.com/app/profile/phatlv/viz/BellabeatCasestudy_16564986351180/Story1)
+
+The presentation includes the analysis report, final conclusions, and recommendations based on the analysis
